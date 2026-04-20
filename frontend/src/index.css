@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  /* On définit tes couleurs Volta ici */
+  --color-volta-green: #3A6D1E;
+  --color-volta-gray: #44474A;
+}
