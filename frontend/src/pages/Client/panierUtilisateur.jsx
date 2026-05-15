@@ -1,40 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Trash2, Plus, Minus, ArrowLeft, ArrowRight, ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../../context/CartContext'; 
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Bio-Lock Pro",
-      category: "SECURITE PHYSIQUE",
-      price: 2500,
-      quantity: 1,
-      image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=200"
-    },
-    {
-      id: 2,
-      name: "Bio-Lock Pro 2",
-      category: "SECURITE PHYSIQUE",
-      price: 2500,
-      quantity: 2,
-      image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&w=200"
-    }
-  ]);
-
-  const updateQuantity = (id, delta) => {
-    setCartItems(items => items.map(item => 
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
-  };
-
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-
+  const { cart, updateQuantity, removeFromCart, cartTotal } = useCart();
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-[#F6F7F9] pt-24 pb-20">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -66,10 +39,10 @@ export default function Cart() {
             </div>
 
             <AnimatePresence mode='popLayout'>
-              {cartItems.length > 0 ? (
-                cartItems.map((item) => (
+              {cart && cart.length > 0 ? (
+                cart.map((item, index) => (
                   <motion.div 
-                    key={item.id}
+                    key={item.id_produit || index}
                     layout
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -77,35 +50,52 @@ export default function Cart() {
                     className="bg-white rounded-[0.5rem] p-6 shadow-sm border border-white hover:border-gray-100 transition-all group"
                   >
                     <div className="grid grid-cols-12 items-center gap-4">
-                      {/* Image & Info */}
                       <div className="col-span-12 md:col-span-6 flex items-center gap-6">
                         <div className="w-20 h-20 bg-[#F6F7F9] rounded-[0.5rem] overflow-hidden shrink-0">
-                          <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                          <img 
+                            src={item.url_image_principale} 
+                            alt={item.nom_produit} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                          />
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg tracking-tight">{item.name}</h3>
-                          <p className="text-[10px] font-bold text-[#9ADE7B] tracking-widest uppercase">{item.category}</p>
+                          <h3 className="font-bold text-gray-900 text-lg tracking-tight">{item.nom_produit}</h3>
+                          <p className="text-[10px] font-bold text-[#9ADE7B] tracking-widest uppercase">
+                            {item.sous_categorie?.nom_sous_categorie || "MATÉRIEL"}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Prix Unitaire */}
                       <div className="col-span-4 md:col-span-2 text-center font-bold text-gray-900">
-                        {item.price.toLocaleString()} FCFA
+                        {Number(item.prix_unitaire_produit).toLocaleString()} FCFA
                       </div>
 
-                      {/* Sélecteur de Quantité */}
                       <div className="col-span-4 md:col-span-2 flex justify-center">
                         <div className="flex items-center bg-[#F6F7F9] rounded-[0.5rem] p-1 border border-gray-100">
-                          <button onClick={() => updateQuantity(item.id, -1)} className="p-1 hover:text-[#9ADE7B] transition-colors"><Minus className="w-4 h-4" /></button>
+                          <button 
+                            onClick={() => updateQuantity(item.id_produit, item.quantity - 1)} 
+                            className="p-1 hover:text-[#9ADE7B] transition-colors"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
                           <span className="w-8 text-center font-bold text-xs">{item.quantity.toString().padStart(2, '0')}</span>
-                          <button onClick={() => updateQuantity(item.id, 1)} className="p-1 hover:text-[#9ADE7B] transition-colors"><Plus className="w-4 h-4" /></button>
+                          <button 
+                            onClick={() => updateQuantity(item.id_produit, item.quantity + 1)} 
+                            className="p-1 hover:text-[#9ADE7B] transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
                         </div>
                       </div>
 
-                      {/* Sous-total & Supprimer */}
                       <div className="col-span-4 md:col-span-2 flex flex-col items-end gap-2">
-                        <span className="font-black text-gray-900">{(item.price * item.quantity).toLocaleString()} FCFA</span>
-                        <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                        <span className="font-black text-gray-900">
+                          {(item.prix_unitaire_produit * item.quantity).toLocaleString()} FCFA
+                        </span>
+                        <button 
+                          onClick={() => removeFromCart(item.id_produit)} 
+                          className="text-gray-300 hover:text-red-500 transition-colors"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -128,7 +118,7 @@ export default function Cart() {
             </AnimatePresence>
           </div>
 
-          {/* --- RÉCAPITULATIF (DROITE) --- */}
+          {/* --- RÉCAPITULATIF --- */}
           <aside className="lg:sticky lg:top-24">
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
@@ -138,10 +128,10 @@ export default function Cart() {
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 mb-8">Récapitulatif</h2>
               
               <div className="space-y-4 mb-8">
-                {cartItems.map(item => (
-                  <div key={item.id} className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">{item.name} (x{item.quantity})</span>
-                    <span className="font-bold text-gray-900">{(item.price * item.quantity).toLocaleString()} FCFA</span>
+                {cart && cart.map((item, index) => (
+                  <div key={item.id_produit || `recap-${index}`} className="flex justify-between text-sm">
+                    <span className="text-gray-500 font-medium">{item.nom_produit} (x{item.quantity})</span>
+                    <span className="font-bold text-gray-900">{(item.prix_unitaire_produit * item.quantity).toLocaleString()} FCFA</span>
                   </div>
                 ))}
               </div>
@@ -149,21 +139,27 @@ export default function Cart() {
               <div className="pt-6 border-t border-dashed border-gray-200 flex justify-between items-end mb-10">
                 <span className="text-2xl font-bold tracking-tighter text-gray-950">Total</span>
                 <span className="text-3xl font-black text-[#1A4301] tracking-tighter">
-                  {subtotal.toLocaleString()} FCFA
+                  {cartTotal.toLocaleString()} FCFA
                 </span>
               </div>
 
-              <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-[#9ADE7B] hover:bg-black hover:text-white text-[#1A4301] font-black py-5 rounded-[0.5rem] flex items-center justify-center gap-3 transition-all shadow-lg shadow-[#9ADE7B]/20 uppercase tracking-widest text-xs group"
-              >
-                Passer à la commande 
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </motion.button>
+             <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={!cart || cart.length === 0}
+              // Ajout de la redirection ici
+              onClick={() => navigate('/checkout')} 
+              className={`w-full font-black py-5 rounded-[0.5rem] flex items-center justify-center gap-3 transition-all shadow-lg uppercase tracking-widest text-xs group ${
+                (!cart || cart.length === 0)
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                : 'bg-[#9ADE7B] hover:bg-black hover:text-white text-[#1A4301] shadow-[#9ADE7B]/20'
+              }`}
+            >
+              Passer à la commande 
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </motion.button>
             </motion.div>
           </aside>
-
         </div>
       </div>
     </div>

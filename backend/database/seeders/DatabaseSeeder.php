@@ -12,12 +12,26 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        // User::factory(10)->create();
+{
+    // Commente ou supprime l'ancien code d'exemple qui utilise 'name'
+    // \App\Models\User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
+    // Crée ton utilisateur de test avec tes propres colonnes
+    \App\Models\User::create([
+        'id_utilisateur' => (string) \Illuminate\Support\Str::uuid(),
+        'nom_complet' => 'Test User', // Remplace 'name' par 'nom_complet'
+        'email' => 'test@example.com',
+        'password' => \Illuminate\Support\Facades\Hash::make('password'),
+        'role_utilisateur' => 'CLIENT',
+        'compte_est_actif' => true,
+        'email_verified_at' => now(),
+    ]);
+
+    // Appelle tes autres seeders
+    $this->call([
+        CategorySeeder::class,
+        SubCategorySeeder::class,
+        // ProductSeeder::class,
+    ]);
+}
 }

@@ -7,6 +7,7 @@ import imageAcceuil2 from '../../images/pageAcceuil2.png';
 import imageAcceuil3 from '../../images/pageAcceuil3.png';
 import ProductGrid from '../../components/ProductGrid';
 import { Link } from 'react-router-dom';
+// import imageAcceuil1 from'../../imagesProduit/camera1.jpg';
 
 const mesProduits = [
   {

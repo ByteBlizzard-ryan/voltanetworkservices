@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CartProvider } from './context/CartContext'; // Assure-toi que le chemin est correct
+
 import MainLayout from './layouts/MainLayout';
 import Login from './pages/Client/Connexion';
 import Register from './pages/Client/creationCompte';
@@ -19,41 +21,46 @@ import Favorites from './pages/Client/favoris';
 import OrderHistory from './pages/Client/historiqueCommandes';
 import FavoritesEmpty from './pages/Client/favorisVide';
 import PrivacyPolicy from './pages/Client/politiqueCondifentialite';
+import ForgotPassword from './pages/Client/ForgotPassword';
+import VerifyResetOtp from './pages/Client/VerifyResetOtp';
+import Success from './pages/Client/Success';
 
 function App() {
   return (
-    <Router>
-      
-
-    
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-email" element={<VerifyEmail />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-  
-        
-        {/* Le MainLayout contient la Navbar et le Footer */}
-        <Route path="/" element={<MainLayout />}>
-        <Route index element={<Home />} />
-        <Route path="/acceuil" element={<Home />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/boutique" element={<Boutique />} />
-        <Route path="/produit/" element={<ProduitDetaille />} />
-        <Route path="/panier" element={<Cart />} />
-        <Route path="/panier-vide" element={<EmptyCart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/conditions-utilisation" element={<TermsOfService />} />
-        <Route path="/a-propos" element={<About />} />
-        <Route path="/profil" element={<Profile />} />
-        <Route path="/favoris" element={<Favorites />} />
-        <Route path="/historique-commandes" element={<OrderHistory />} />
-        <Route path="/favoris-vide" element={<FavoritesEmpty />} />
-        <Route path="/politique-confidentialite" element={<PrivacyPolicy />} />
-        </Route>
-      </Routes>
-    </Router>
+    <CartProvider> {/* Le Provider enveloppe tout pour que le panier soit accessible partout */}
+      <Router>
+        <Routes>
+          {/* Routes sans Navbar/Footer (Auth) */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-reset-otp" element={<VerifyResetOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Routes avec MainLayout (Navbar + Footer) */}
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="/acceuil" element={<Home />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/boutique" element={<Boutique />} />
+            <Route path="/produit/:id" element={<ProduitDetaille />} />
+            <Route path="/panier" element={<Cart />} />
+            <Route path="/panier-vide" element={<EmptyCart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/conditions-utilisation" element={<TermsOfService />} />
+            <Route path="/a-propos" element={<About />} />
+            <Route path="/profil" element={<Profile />} />
+            <Route path="/favoris" element={<Favorites />} />
+            <Route path="/historique-commandes" element={<OrderHistory />} />
+            <Route path="/favoris-vide" element={<FavoritesEmpty />} />
+            <Route path="/politique-confidentialite" element={<PrivacyPolicy />} />
+            <Route path="/success" element={<Success />} />
+          </Route>
+        </Routes>
+      </Router>
+    </CartProvider>
   );
 }
 
