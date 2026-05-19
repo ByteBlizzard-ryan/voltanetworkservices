@@ -1,0 +1,118 @@
+
+.ajouter_admin{
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+    padding: 15px 20px;
+}
+
+.titre_ajout_admin{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    p{
+        color: #96D971;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    button {
+        border-radius: 5px;
+        display: flex;
+        background: #ccc;
+        padding: 8px 10px;
+        gap: 5px;
+        align-items: center;
+        cursor: pointer;
+    }
+    button:hover{
+        background-color: #96D971;
+    }
+}
+
+
+.titre{
+    font-size: 26px;
+    font-weight: bold;
+
+    .description_titre{
+        text-align: justify;   
+    }
+}
+
+
+.con_ajout_admin{
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+
+    margin-top: 20px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    width: 100%;
+    height: auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        input{
+            background: #f5f5f5;
+            font-size: 16px;
+            height: auto;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        input:focus{
+            border-color: none;
+        }
+        p{
+            display: flex;
+            gap: 10px;
+        }
+        select{
+            background: #f5f5f5;
+            font-size: 16px;
+            height: auto;
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    }
+}
+
+
+.validation{
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 10px;
+
+    .annuler{
+        background: #ccc;
+        cursor: pointer;
+        padding: 8px 10px;
+        border-radius: 8px;
+    }
+    .annuler:hover{
+        background: rgba(150, 217, 113, 0.5);
+    }
+    .ajouter{
+        background: rgba(150, 217, 113, 0.5);
+        display: flex;
+        gap: 5px;
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+    }
+    .ajouter:hover{
+        background: #96D971 ;
+    }
+}
+

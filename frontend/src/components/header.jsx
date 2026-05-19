@@ -1,7 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import { ShoppingCart, User, Search } from 'lucide-react';
 import logo from '../assets/logo.svg';
-import react from '../assets/react.svg';
+//import react from '../assets/react.svg';
+
+
+
 export default function Navbar() {
   const linkClass = ({ isActive }) => 
     `transition-colors ${isActive ? 'text-volta-green font-semibold' : 'text-volta-gray hover:text-volta-green'}`;

@@ -1,0 +1,199 @@
+.con_gestion_produit{
+    padding-top: 20px;
+}
+
+.entete_filtre{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 10px;
+}
+
+.entete_filtre .filtre_etat{
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    width: auto;
+}
+
+.entete_filtre .filtre_etat button{
+    height: auto;
+    padding: 8px;
+    width: 100px;
+    background-color: #fff;
+    cursor: pointer;
+    border-collapse: collapse;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.entete_filtre .filtre_etat button.active{
+    background-color: #96D971;
+    color: #fff;
+}
+
+.entete_filtre .filtre_etat button:hover{
+    background-color: #96D971;
+}
+
+
+.entete_filtre .filtre_date{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    align-items: center;
+}
+.entete_filtre .filtre_date input{
+    height: auto;
+    width: auto;
+    background-color: #96D971;
+    color: #000;
+    padding: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+
+.table_wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.list_produit {
+    margin-top: 40px;
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    background: #fff;
+}
+
+/* En-tête */
+.list_produit thead {
+    background-color: #ddd;
+    font-weight: normal;
+    color: #000;
+    border-bottom: 1px solid #4CAF50;
+}
+
+.list_produit th,
+.list_produit td {
+    padding: 12px 15px;
+}
+
+/* Lignes */
+.list_produit tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: 0.2s;
+}
+
+/* Alternance de couleur */
+.list_produit tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+}
+
+/* Hover effet */
+.list_produit tbody tr:hover {
+    background-color: #e0f7fa;
+}
+
+/* Dernière ligne */
+.list_produit tbody tr:last-child {
+    border-bottom: 2px solid #4CAF50;
+}
+
+.list_produit tbody tr td {
+    flex-wrap: wrap;
+    align-items: center;
+    text-align: center;
+}
+
+.list_produit tbody .designation{
+    cursor: pointer;
+}
+
+.list_produit tbody tr td .info_produit {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.list_produit tbody tr td .info_produit label{
+    height: 40px;
+    width: 40px;
+    border-radius: 25%;
+    align-items: center;
+    text-align: center;
+    align-content: center;
+    font-size: large;
+}
+
+.list_produit tbody tr td img{
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+}
+
+.list_produit tbody tr td .design_produit {
+    text-align: left;
+    h3 {
+        font-weight: bold;
+    }
+    p {
+        font-weight: normal;
+        color: #2d2c2c;
+    }
+}
+
+.list_produit tbody tr td .categorie{
+    background: #ccc;
+    padding: 8px;
+}
+.list_produit tbody tr .prix{
+    color: #4CAF50;
+    font-weight: bold;
+}
+.list_produit tbody tr td .etat{
+    padding: 8px;
+    width: 80px;
+    border: 1px solid;
+}
+.list_produit tbody tr td .action{
+    font-weight: normal;
+    padding: 8px;
+    font-size: 40px;
+    cursor: pointer;
+}
+.list_produit tbody tr td .action.on{
+    background-color: #96D971;
+    border: 1px solid #4CAF50;
+}
+.list_produit tbody tr td .action.off{
+    background-color: rgba(255, 0, 0, 0.5);
+    border: 1px solid #ff0000;
+}
+
+.pagination {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 20px;
+}
+
+.pagination button {
+    margin: 5px;
+    padding: 6px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+}
+.pagination button:hover {
+    background-color: rgba(150, 217, 113, 0.5);
+}
+
+.pagination .active {
+    background-color: #4CAF50;
+    color: white;
+}
