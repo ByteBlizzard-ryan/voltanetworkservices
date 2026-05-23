@@ -1,0 +1,21 @@
+1. Authentification & Sécurité (Le plus urgent)
+Avant de vendre des caméras, il faut pouvoir identifier qui est qui (Admin vs Client).
+
+Logique : Inscription, Connexion (JWT ou Sanctum), et surtout la gestion du Google Login.
+
+Vérification : Est-ce que l'utilisateur a les permissions pour accéder au tableau de bord ?
+
+2. Gestion du Catalogue (Produits & Catégories)
+C'est ce que tes clients verront en premier.
+
+Logique : Lister les produits, filtrer par sous-catégorie, afficher les détails et les images secondaires.
+
+Admin : Ajouter/Modifier/Supprimer un produit et uploader des images sur le serveur.
+
+3. Le Processus de Commande (Le tunnel d'achat)
+Logique : Transformer un panier React en une Commande réelle dans la base de données.
+
+Canaux : Envoyer une notification automatique sur WhatsApp (comme prévu dans ton MCD) ou par Email dès qu'une commande est validée.
+
+4. Espace Client (Favoris & Historique)
+Logique : Permettre à l'utilisateur de sauvegarder ses produits préférés et de voir l'état de ses commandes ("EN COURS", "PAYÉE").
