@@ -1,0 +1,22 @@
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+x509_extensions = v3_req
+distinguished_name = dn
+
+[dn]
+C = CM
+ST = Littoral
+L = Douala
+O = LocalDev
+OU = Dev
+CN = 192.168.1.133
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+IP.1 = 192.168.1.133
+IP.2 = 192.168.1.198
+IP.3 = 192.168.1.132

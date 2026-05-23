@@ -1,0 +1,22 @@
+
+
+
+.gest_acces{
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}
+
+.gest_acces h1{
+    font-size: 30px;
+    font-weight: bold;
+}
+.gest_acces p{
+    font-size: 16px;
+    color: #4CAF50;
+}
+
+

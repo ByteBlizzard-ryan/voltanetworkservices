@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, User, Search, Menu, X, ArrowLeft, Loader2 } from 'lucide-react';
 import logo from '../assets/logo.svg';
-// Importation du hook pour accéder au panier
 import { useCart } from '../context/CartContext'; 
 
 export default function Navbar() {
