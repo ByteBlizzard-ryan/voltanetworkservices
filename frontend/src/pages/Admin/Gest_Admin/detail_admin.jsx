@@ -1,37 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, User, CheckCircle2, Ban, Unlock } from "lucide-react";
-
-// ── 1. DONNÉES LOCALES INTÉGRÉES ──────────────────────────────────────────────
-const data = [
-  { id: "U001", nom: "Alice Mbarga", email: "alice@gmail.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U002", nom: "Jean Nkomo", email: "jean@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U003", nom: "Paul Ndzi", email: "paul@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U004", nom: "Clarisse Ndzi", email: "clarisse@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U005", nom: "Marc Essono", email: "marc@gmail.com", role: "superadmin", statut: "inactif", action: "debloquer" },
-  { id: "U006", nom: "Brice Tchoua", email: "brice@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U007", nom: "Nadine Ewane", email: "nadine@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U008", nom: "Serge Ndzi", email: "serge@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U009", nom: "Yves Mbida", email: "yves@gmail.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U010", nom: "Cynthia Ndzi", email: "cynthia@yahoo.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U011", nom: "Kevin Ndzi", email: "kevin@gmail.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U012", nom: "Mireille Ndzi", email: "mireille@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U013", nom: "Joel Ndzi", email: "joel@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U014", nom: "Sandra Ndzi", email: "sandra@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U015", nom: "Patrick Ndzi", email: "patrick@gmail.com", role: "admin", statut: "inactif", action: "debloquer" }
-];
-
-const admin = {
-  id: "ADM-2901-X",
-  name: "Marc D.",
-  email: "marc.d@voltanetwork.com",
-  role: "Admin",
-  status: "ACTIF", // "ACTIF" | "BLOQUÉ"
-  createdAt: "12 Janvier 2024",
-  avatar: null,
-};
-
-export { data, admin };
+import { ArrowLeft, User, CheckCircle2, Ban, Unlock, Loader2 } from "lucide-react";
 
 // Fonction de style utilitaire pour l'avatar par défaut
 function Couleur_Nom_Icon(lettre = "") {
@@ -47,29 +16,112 @@ function Couleur_Nom_Icon(lettre = "") {
   return colorMap[lettre] || "#9ca3af";
 }
 
-// ── 2. COMPOSANT PRINCIPAL (100% TAILWIND CSS) ──────────────────────────────────
-export default function AdminDetail({ onBlock }) {
-  const [blocked, setBlocked] = useState(admin.status === "BLOQUÉ");
+export default function AdminDetail() {
   const navigate = useNavigate();
-  const { id_admin } = useParams();
+  const { id_admin } = useParams(); // Récupère l'UUID depuis l'URL de React-Router
 
-  function handleBlock() {
-    const next = !blocked;
-    setBlocked(next);
-    onBlock?.({ ...admin, status: next ? "BLOQUÉ" : "ACTIF" });
-  }
+  // États dynamiques
+  const [admin, setAdmin] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // ── 1. CHARGEMENT DE L'ADMINISTRATEUR DEPUIS L'API
+  useEffect(() => {
+    const fetchAdminDetail = async () => {
+      try {
+        setLoading(true);
+        // Note: Idéalement, tu devrais avoir une route GET /api/admin/administrateurs/{id}.
+        // Si tu n'as pas cette route, on filtre temporairement sur la liste complète :
+        const response = await fetch("http://localhost:8000/api/admin/administrateurs");
+        if (!response.ok) throw new Error("Impossible de récupérer les administrateurs.");
+        
+        const data = await response.json();
+        const currentAdmin = data.find(item => item.id_utilisateur === id_admin);
+
+        if (!currentAdmin) {
+          throw new Error("Cet administrateur n'existe pas ou a été supprimé.");
+        }
+
+        setAdmin(currentAdmin);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id_admin) {
+      fetchAdminDetail();
+    }
+  }, [id_admin]);
+
+  // ── 2. MODIFICATION DU STATUT (TOGGLE-STATUS SUR LARAVEL)
+  const handleToggleStatus = async () => {
+    if (!admin || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+      const response = await fetch(`http://localhost:8000/api/admin/administrateurs/${admin.id_utilisateur}/toggle-status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        }
+      });
+
+      if (!response.ok) throw new Error("Une erreur est survenue lors de la mise à jour.");
+
+      const result = await response.json();
+      
+      // Mise à jour de l'état local avec la nouvelle valeur renvoyée par Laravel
+      setAdmin(prev => ({
+        ...prev,
+        compte_est_actif: result.compte_est_actif
+      }));
+
+    } catch (err) {
+      alert(`Erreur : ${err.message}`);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handlereturn = () => {
     navigate('/admin/administrateur');
   };
 
-  // Configuration dynamique selon la charte graphique globale
-  const statusBadgeClass = blocked 
+  // ── ÉTATS D'AFFICHAGE PRIMAIRES (CHARGEMENT & ERREUR)
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-3">
+        <Loader2 className="w-10 h-10 animate-spin text-[#9ADE7B]" />
+        <p className="text-sm font-medium text-gray-500 tracking-wider uppercase">Chargement du protocole de sécurité...</p>
+      </div>
+    );
+  }
+
+  if (error || !admin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-4 px-4 text-center">
+        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center text-red-500 font-bold text-xl">!</div>
+        <h2 className="text-xl font-bold text-gray-800">Accès impossible</h2>
+        <p className="text-sm text-gray-500 max-w-sm">{error || "Impossible de charger le profil."}</p>
+        <button onClick={handlereturn} className="flex items-center gap-2 text-xs font-bold bg-gray-900 text-white px-5 py-3 rounded-xl transition-transform active:scale-95">
+          <ArrowLeft size={14} /> Retour à la liste
+        </button>
+      </div>
+    );
+  }
+
+  // Configuration graphique dynamique selon le statut venant de Laravel
+  const isBlocked = !admin.compte_est_actif;
+  const statusBadgeClass = isBlocked 
     ? "bg-red-50 text-red-600 border-transparent" 
     : "bg-[#9ADE7B]/20 text-[#1A4301] border-transparent";
 
-  const statusDotClass = blocked ? "bg-red-500" : "bg-[#9ADE7B]";
-  const statusLabel = blocked ? "BLOQUÉ" : "ACTIF";
+  const statusDotClass = isBlocked ? "bg-red-500" : "bg-[#9ADE7B]";
+  const statusLabel = isBlocked ? "BLOQUÉ" : "ACTIF";
 
   return (
     <div className="flex flex-col bg-white min-h-screen font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] px-4 md:px-8 py-12 pb-20 gap-8">
@@ -94,7 +146,6 @@ export default function AdminDetail({ onBlock }) {
         </button>
       </header>
 
-      {/* Animation native du point clignotant */}
       <style>{`
         @keyframes pulseDot {
           0%, 100% { opacity: 1; transform: scale(1); }
@@ -105,40 +156,38 @@ export default function AdminDetail({ onBlock }) {
       {/* ── Body Layout ── */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start w-full">
         
-        {/* Fiche Profil (Profile Card) */}
+        {/* Fiche Profil */}
         <div className="bg-white border border-gray-100 shadow-xl rounded-2xl p-6 md:p-8">
           <div className="flex items-center gap-5 mb-6 pb-6 border-b border-gray-50">
             <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm">
-              {admin.avatar ? (
-                <img src={admin.avatar} alt={admin.name} className="w-full h-full object-cover rounded-2xl" />
-              ) : (
-                <div 
-                  style={{ backgroundColor: Couleur_Nom_Icon(admin.name?.charAt(0).toUpperCase()) }}
-                  className="w-full h-full rounded-2xl flex items-center justify-center font-bold text-white text-xl"
-                >
-                  {admin.name?.charAt(0).toUpperCase() || <User size={24} />}
-                </div>
+              <div 
+                style={{ backgroundColor: Couleur_Nom_Icon(admin.nom_complet?.charAt(0).toUpperCase()) }}
+                className="w-full h-full rounded-2xl flex items-center justify-center font-bold text-white text-xl"
+              >
+                {admin.nom_complet?.charAt(0).toUpperCase() || <User size={24} />}
+              </div>
+              {!isBlocked && (
+                <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#9ADE7B] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+                  <CheckCircle2 size={11} color="#fff" strokeWidth={3} />
+                </span>
               )}
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#9ADE7B] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                <CheckCircle2 size={11} color="#fff" strokeWidth={3} />
-              </span>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 m-0 tracking-tight">{admin.name}</h2>
-              <p className="text-[10px] font-mono font-bold tracking-wider text-gray-400 mt-0.5">ID: {id_admin || admin.id}</p>
+              <h2 className="text-xl font-bold text-gray-900 m-0 tracking-tight">{admin.nom_complet}</h2>
+              <p className="text-[10px] font-mono font-bold tracking-wider text-gray-400 mt-0.5">UUID: {admin.id_utilisateur}</p>
             </div>
           </div>
 
-          {/* Liste des champs d'information */}
+          {/* Liste des champs d'information mappés sur tes colonnes Laravel */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-4">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold tracking-wider uppercase text-gray-400">Email</span>
-              <span className="text-sm font-medium text-gray-700">{admin.email}</span>
+              <span className="text-sm font-medium text-gray-700 select-all">{admin.email}</span>
             </div>
             
             <div className="flex flex-col gap-1">
               <span className="text-[10px] font-bold tracking-wider uppercase text-gray-400">Rôle</span>
-              <span className="text-sm font-bold text-gray-700 font-mono uppercase text-xs tracking-wider">{admin.role}</span>
+              <span className="text-sm font-bold text-gray-700 font-mono uppercase text-xs tracking-wider">{admin.role_utilisateur}</span>
             </div>
 
             <div className="flex flex-col gap-1.5 items-start">
@@ -148,11 +197,6 @@ export default function AdminDetail({ onBlock }) {
                 {statusLabel}
               </span>
             </div>
-
-            <div className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold tracking-wider uppercase text-gray-400">Date de création</span>
-              <span className="text-sm font-medium text-gray-700">{admin.createdAt}</span>
-            </div>
           </div>
         </div>
 
@@ -161,19 +205,22 @@ export default function AdminDetail({ onBlock }) {
           <div>
             <h3 className="text-base font-bold text-gray-900 m-0 tracking-tight">Actions de sécurité</h3>
             <p className="text-xs leading-relaxed text-gray-400 m-0 mt-1 text-justify">
-              Gérez les accès de cet administrateur à l'infrastructure Volta Network. Les changements de statut prennent effet immédiatement et sont consignés.
+              Gérez les accès de cet administrateur à l'infrastructure Volta Network. Les changements de statut prennent effet immédiatement en base de données.
             </p>
           </div>
           
           <button
-            className={`w-full flex items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-bold tracking-wider uppercase cursor-pointer transition-all border-none shadow-sm active:scale-95 text-white ${
-              blocked 
+            disabled={actionLoading}
+            className={`w-full flex items-center justify-center gap-2 p-3.5 rounded-xl text-xs font-bold tracking-wider uppercase cursor-pointer transition-all border-none shadow-sm active:scale-95 text-white disabled:opacity-50 ${
+              isBlocked 
                 ? "bg-[#9ADE7B] hover:bg-[#89cf6c]" 
                 : "bg-red-500 hover:bg-red-600"
             }`}
-            onClick={handleBlock}
+            onClick={handleToggleStatus}
           >
-            {blocked ? (
+            {actionLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : isBlocked ? (
               <>
                 <Unlock size={15} strokeWidth={2.5} />
                 Débloquer l'administrateur

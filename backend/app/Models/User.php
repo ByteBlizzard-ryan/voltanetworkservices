@@ -6,13 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Illuminate\Support\Str; // IMPORTANT pour l'UUID
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    // Configuration de la clé primaire personnalisée
     protected $primaryKey = 'id_utilisateur';
     public $incrementing = false;
     protected $keyType = 'string';
@@ -41,7 +40,6 @@ class User extends Authenticatable
         ];
     }
 
-    // Génération automatique de l'UUID lors de la création d'un utilisateur
     protected static function booted()
     {
         static::creating(function ($user) {
@@ -49,5 +47,18 @@ class User extends Authenticatable
                 $user->id_utilisateur = (string) Str::uuid();
             }
         });
+    }
+
+    /**
+     * Récupérer toutes les commandes passées par cet utilisateur.
+     */
+    public function commandes()
+    {
+        // Un utilisateur possède plusieurs (hasMany) commandes
+        return $this->hasMany(
+            Commande::class, 
+            'id_utilisateur_fk', // La clé étrangère dans la table commandes
+            'id_utilisateur'     // La clé locale/primaire dans la table users
+        );
     }
 }

@@ -1,30 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   CornerUpLeft, Mail, User, LockKeyhole, 
-  RotateCcwKey, ShieldCog, UserPlus 
+  RotateCcwKey, ShieldCog, UserPlus, Loader2
 } from 'lucide-react';
 
-// ── 1. DONNÉES INTÉGRÉES ───────────────────────────────────────────────────
-const data = [
-  { id: "U001", nom: "Alice Mbarga", email: "alice@gmail.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U002", nom: "Jean Nkomo", email: "jean@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U003", nom: "Paul Ndzi", email: "paul@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U004", nom: "Clarisse Ndzi", email: "clarisse@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U005", nom: "Marc Essono", email: "marc@gmail.com", role: "superadmin", statut: "inactif", action: "debloquer" },
-  { id: "U006", nom: "Brice Tchoua", email: "brice@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U007", nom: "Nadine Ewane", email: "nadine@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U008", nom: "Serge Ndzi", email: "serge@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U009", nom: "Yves Mbida", email: "yves@gmail.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U010", nom: "Cynthia Ndzi", email: "cynthia@yahoo.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U011", nom: "Kevin Ndzi", email: "kevin@gmail.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U012", nom: "Mireille Ndzi", email: "mireille@yahoo.com", role: "admin", statut: "actif", action: "bloquer" },
-  { id: "U013", nom: "Joel Ndzi", email: "joel@gmail.com", role: "admin", statut: "inactif", action: "debloquer" },
-  { id: "U014", nom: "Sandra Ndzi", email: "sandra@yahoo.com", role: "superadmin", statut: "actif", action: "bloquer" },
-  { id: "U015", nom: "Patrick Ndzi", email: "patrick@gmail.com", role: "admin", statut: "inactif", action: "debloquer" }
-];
-
-// ── 2. FONCTIONS DE STYLE UTILITAIRES ────────────────────────────────────────
+// ── FONCTIONS DE STYLE UTILITAIRES ────────────────────────────────────────
 function Couleur_Nom_Icon(lettre = "") {
   const colorMap = {
     A: "#E57373", B: "#64B5F6", C: "#81C784", D: "#BA68C8",
@@ -38,27 +19,46 @@ function Couleur_Nom_Icon(lettre = "") {
   return colorMap[lettre] || "#9ca3af";
 }
 
-function Style_Statut(statut) {
-  if (statut === "actif") {
-    return { couleur: "#1A4301", arriere: "rgba(154, 222, 123, 0.2)" };
-  }
-  return { couleur: "#b91c1c", arriere: "rgba(239, 68, 68, 0.15)" };
-}
-
-function Style_Action(statut) {
-  if (statut === "inactif") return { couleur: "#1A4301", action: "Débloquer" };
-  if (statut === "actif") return { couleur: "#b91c1c", action: "Bloquer" };
-  return { couleur: "#6b7280", action: "" };
-}
-
-// ── 3. COMPOSANT FORMULAIRE D'AJOUT ─────────────────────────────────────────
+// ── COMPOSANT FORMULAIRE D'AJOUT ─────────────────────────────────────────
 export function Ajout_Admin() {
   const naviguer = useNavigate();
   const [nom, setNom] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleAjouter = async (e) => {
+    e.preventDefault();
+    if (!nom || !email || !password) return alert("Veuillez remplir tous les champs obligatoires.");
+    if (password !== confirmPassword) return alert("Les mots de passe ne correspondent pas.");
+
+    try {
+      setLoading(true);
+      const response = await fetch("http://localhost:8000/api/admin/administrateurs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          nom_complet: nom,
+          email: email,
+          password: password,
+          role_utilisateur: "ADMIN"
+        })
+      });
+
+      const resData = await response.json();
+      if (response.ok) {
+        alert(resData.message);
+        naviguer('/admin/administrateur');
+      } else {
+        alert(resData.message || "Une erreur est survenue lors de l'enregistrement.");
+      }
+    } catch (err) {
+      alert("Impossible de joindre le serveur.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] px-4 md:px-8">
@@ -75,18 +75,11 @@ export function Ajout_Admin() {
         </button>
       </div>
 
-      <p className="text-gray-400 text-sm max-w-3xl -mt-4">
-        Configurer les privilèges et les identifiants pour un nouvel administrateur du réseau. 
-        Chaque profil est audité en temps réel par le noyau Sentinel.
-      </p>
-
-      <div className="flex flex-col gap-5 bg-white rounded-2xl p-6 md:p-8 w-full border border-gray-100 shadow-xl max-w-4xl">
+      <form onSubmit={handleAjouter} className="flex flex-col gap-5 bg-white rounded-2xl p-6 md:p-8 w-full border border-gray-100 shadow-xl max-w-4xl">
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider"><User size={15} /> Nom complet</p>
           <input 
-            type="text" 
-            placeholder="Jean Paul" 
-            value={nom} 
+            type="text" required placeholder="Jean Paul" value={nom} 
             onChange={(e) => setNom(e.target.value)} 
             className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all"
           />
@@ -95,9 +88,7 @@ export function Ajout_Admin() {
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider"><Mail size={15} /> Email professionnel</p>
           <input 
-            type="text" 
-            placeholder="jean@gmail.com" 
-            value={email} 
+            type="email" required placeholder="jean@gmail.com" value={email} 
             onChange={(e) => setEmail(e.target.value)}
             className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all"
           />
@@ -105,23 +96,15 @@ export function Ajout_Admin() {
 
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider"><ShieldCog size={15} /> Rôle & Privilèges</p>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all appearance-none"
-          >
-            <option value="">Sélectionnez un rôle</option>
-            <option value="ADMIN">Administrateur</option>
-            <option value="USER">Utilisateur</option>
+          <select disabled className="bg-gray-100 text-sm w-full p-3.5 rounded-xl border border-gray-100 cursor-not-allowed appearance-none font-sans font-medium text-gray-700">
+            <option value="ADMIN">ADMINISTRATEUR</option>
           </select>
         </label>
 
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider"><LockKeyhole size={15} /> Mot de passe</p>
           <input 
-            type="password" 
-            placeholder="••••••••••••" 
-            value={password} 
+            type="password" required placeholder="••••••••••••" value={password} 
             onChange={(e) => setPassword(e.target.value)}
             className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all"
           />
@@ -130,23 +113,21 @@ export function Ajout_Admin() {
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider"><RotateCcwKey size={15} /> Confirmer mot de passe</p>
           <input 
-            type="password" 
-            placeholder="••••••••••••"
-            value={confirmPassword} 
+            type="password" required placeholder="••••••••••••" value={confirmPassword} 
             onChange={(e) => setConfirmPassword(e.target.value)}
             className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all"
           />
         </label>
 
         <div className="flex justify-between items-center pt-6 border-t border-gray-50 mt-4 gap-4">
-          <button className="bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 px-6 py-3 rounded-xl cursor-pointer transition-colors border-none font-bold text-xs uppercase tracking-wider active:scale-95">
+          <button type="button" onClick={() => naviguer('/admin/administrateur')} className="bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 px-6 py-3 rounded-xl cursor-pointer transition-colors border-none font-bold text-xs uppercase tracking-wider active:scale-95">
             Annuler
           </button>
-          <button className="bg-[#F6F7F9] hover:bg-[#9ADE7B] text-gray-900 hover:text-white px-6 py-3 rounded-xl flex items-center gap-2 cursor-pointer transition-all border-none font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95">
-            <UserPlus size={16} /> Ajouter l'administrateur
+          <button type="submit" disabled={loading} className="bg-[#F6F7F9] hover:bg-[#9ADE7B] text-gray-900 hover:text-white px-6 py-3 rounded-xl flex items-center gap-2 cursor-pointer transition-all border-none font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95">
+            {loading ? <Loader2 className="animate-spin" size={16} /> : <UserPlus size={16} />} Ajouter l'administrateur
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
@@ -154,14 +135,57 @@ export function Ajout_Admin() {
 // ── 4. COMPOSANT LISTE & FILTRES ─────────────────────────────────────────────
 export function Con_gestion_admin() {
   const naviguer = useNavigate();
+  const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filtreEtat, setFiltreEtat] = useState("tous");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  // 1. Charger les administrateurs depuis le serveur
+  useEffect(() => {
+    async function fetchAdmins() {
+      try {
+        setLoading(true);
+        const response = await fetch("http://localhost:8000/api/admin/administrateurs");
+        if (response.ok) {
+          const data = await response.json();
+          setAdmins(data);
+        }
+      } catch (err) {
+        console.error("Erreur de synchronisation :", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAdmins();
+  }, []);
+
+  // 2. Action d'activation / blocage en direct
+  const toggleStatus = async (id, e) => {
+    e.stopPropagation(); // Évite la redirection de ligne au clic sur le bouton
+    try {
+      const response = await fetch(`http://localhost:8000/api/admin/administrateurs/${id}/toggle-status`, {
+        method: "PATCH",
+        headers: { "Accept": "application/json" }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Modification immédiate dans le state React
+        setAdmins(prev => prev.map(adm => 
+          adm.id_utilisateur === id ? { ...adm, compte_est_actif: data.compte_est_actif } : adm
+        ));
+      }
+    } catch (err) {
+      alert("Erreur réseau, modification impossible.");
+    }
+  };
+
+  // 3. Filtrage dynamique calqué sur les booléens de Laravel (1 = actif, 0 = inactif)
   const filteredData = useMemo(() => {
-    if (filtreEtat === "tous") return data;
-    return data.filter(item => item.statut === filtreEtat);
-  }, [filtreEtat]);
+    if (filtreEtat === "tous") return admins;
+    const cibleBool = filtreEtat === "actif" ? 1 : 0;
+    return admins.filter(item => Number(item.compte_est_actif) === cibleBool);
+  }, [filtreEtat, admins]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexLastItem = currentPage * itemsPerPage;
@@ -172,6 +196,14 @@ export function Con_gestion_admin() {
     setFiltreEtat(statut);
     setCurrentPage(1);
   };
+
+  if (loading) {
+    return (
+      <div className="w-full flex py-16 items-center justify-center gap-2 text-gray-400 font-sans text-xs uppercase tracking-wider font-bold">
+        <Loader2 className="animate-spin text-[#9ADE7B]" size={20} /> Synchronisation Sentinel...
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -218,50 +250,50 @@ export function Con_gestion_admin() {
           </thead>
           <tbody className="divide-y divide-gray-50/60">
             {currentItems.length > 0 ? (
-              currentItems.map((adminItem) => (
-                <tr 
-                  key={adminItem.id} 
-                  onClick={() => naviguer(`/admin/administrateur/${adminItem.id}`)}
-                  className="group transition-colors cursor-pointer hover:bg-gray-50/60"
-                >
-                  <td className="p-4 pl-6">
-                    <div className="flex items-center gap-3">
-                      <label 
-                        style={{ backgroundColor: Couleur_Nom_Icon(adminItem.email?.charAt(0).toUpperCase()) }}
-                        className="h-8 w-8 rounded-xl flex items-center justify-center font-bold text-white shadow-sm text-xs transition-transform group-hover:scale-105"
+              currentItems.map((adminItem) => {
+                const estActif = Number(adminItem.compte_est_actif) === 1;
+                return (
+                  <tr 
+                    key={adminItem.id_utilisateur} 
+                    onClick={() => naviguer(`/admin/administrateur/${adminItem.id_utilisateur}`)}
+                    className="group transition-colors cursor-pointer hover:bg-gray-50/60"
+                  >
+                    <td className="p-4 pl-6">
+                      <div className="flex items-center gap-3">
+                        <label 
+                          style={{ backgroundColor: Couleur_Nom_Icon(adminItem.email?.charAt(0).toUpperCase()) }}
+                          className="h-8 w-8 rounded-xl flex items-center justify-center font-bold text-white shadow-sm text-xs transition-transform group-hover:scale-105 font-sans"
+                        >
+                          {adminItem.email?.charAt(0).toUpperCase() || ""}
+                        </label>
+                        <h3 className="m-0 text-sm font-bold text-gray-800">{adminItem.nom_complet}</h3>      
+                      </div>
+                    </td>
+                    <td className="p-4 text-gray-400 font-mono text-xs uppercase">{adminItem.role_utilisateur}</td>
+                    <td className="p-4 text-gray-500 text-sm font-sans">{adminItem.email}</td>
+                    <td className="p-4">
+                      <span 
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-xl uppercase tracking-wider font-sans"
+                        style={{ 
+                          backgroundColor: estActif ? "rgba(154, 222, 123, 0.2)" : "rgba(239, 68, 68, 0.15)", 
+                          color: estActif ? "#1A4301" : "#b91c1c" 
+                        }}
                       >
-                        {adminItem.email?.charAt(0).toUpperCase() || ""}
-                      </label>
-                      <h3 className="m-0 text-sm font-bold text-gray-800">{adminItem.nom}</h3>      
-                    </div>
-                  </td>
-                  <td className="p-4 text-gray-400 font-mono text-xs uppercase">{adminItem.role}</td>
-                  <td className="p-4 text-gray-500 text-sm">{adminItem.email}</td>
-                  <td className="p-4">
-                    <span 
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-xl uppercase tracking-wider"
-                      style={{ 
-                        backgroundColor: Style_Statut(adminItem.statut).arriere, 
-                        color: Style_Statut(adminItem.statut).couleur 
-                      }}
-                    >
-                      {adminItem.statut}
-                    </span>
-                  </td>
-                  <td className="p-4 pr-6 text-right text-sm">
-                    <button 
-                      style={{ color: Style_Action(adminItem.statut).couleur }}
-                      className="border-none bg-transparent cursor-pointer font-bold text-xs uppercase tracking-wider hover:opacity-70 transition-opacity active:scale-95"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        alert(`Action: ${Style_Action(adminItem.statut).action}`);
-                      }}
-                    >
-                      {Style_Action(adminItem.statut).action}
-                    </button>
-                  </td>
-                </tr>
-              ))
+                        {estActif ? "Actif" : "Inactif"}
+                      </span>
+                    </td>
+                    <td className="p-4 pr-6 text-right text-sm">
+                      <button 
+                        style={{ color: estActif ? "#b91c1c" : "#1A4301" }}
+                        className="border-none bg-transparent cursor-pointer font-bold text-xs uppercase tracking-wider hover:opacity-70 transition-opacity active:scale-95"
+                        onClick={(e) => toggleStatus(adminItem.id_utilisateur, e)}
+                      >
+                        {estActif ? "Bloquer" : "Débloquer"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="5" className="p-12 text-center text-gray-400 italic text-sm">Aucun administrateur trouvé</td>

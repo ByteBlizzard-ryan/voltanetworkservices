@@ -25,24 +25,32 @@ export default function Login() {
         };
 
         try {
-            // Appel à ton nouveau LoginController
+            // Appel à ton contrôleur Laravel mis à jour
             const response = await axios.post('http://127.0.0.1:8000/api/login', loginData);
             
-            // Stockage du token de sécurité
+            // 1. Stockage du token de sécurité
             localStorage.setItem('token', response.data.access_token);
             
-            // Stockage optionnel des infos utilisateur
+            // 2. Stockage du rôle de l'utilisateur (ADMIN ou CLIENT)
+            localStorage.setItem('user_role', response.data.role);
+            
+            // 3. Stockage des infos de profil utilisateur
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            // Redirection vers l'accueil
-            navigate('/'); 
+            // 4. Redirection intelligente basée sur la réponse du serveur (Backoffice ou Client-office)
+            if (response.data.redirect_to) {
+                navigate(response.data.redirect_to);
+            } else {
+                // Repli de sécurité au cas où
+                navigate('/');
+            }
             
         } catch (err) {
-            // Gestion des erreurs (Identifiants faux, Compte non activé, etc.)
+            // Gestion des erreurs (Identifiants invalides, Compte non vérifié par OTP, etc.)
             if (err.response && err.response.data) {
-                setError(err.response.data.message || "Une erreur est survenue.");
+                setError(err.response.data.message || "Une erreur est survenue lors de la connexion.");
             } else {
-                setError("Impossible de contacter le serveur.");
+                setError("Impossible de joindre le serveur d'authentification.");
             }
         } finally {
             setLoading(false);
@@ -52,7 +60,7 @@ export default function Login() {
     return (
         <div className="min-h-screen bg-[#F6F7F9] flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-y-auto font-sans">
             
-            {/* 1. Header */}
+            {/* ── 1. HEADER ── */}
             <div className="text-center mt-6 mb-8 md:mb-12 flex flex-col items-center gap-4 md:gap-6 w-full px-2">
                 <h2 className="text-base md:text-xl font-bold tracking-[0.2em] text-gray-950 uppercase">
                     VOLTA NETWORK SERVICES
@@ -60,13 +68,13 @@ export default function Login() {
                 <img src={logo} alt="Volta Logo" className="w-16 md:w-24" />
             </div>
 
-            {/* 2. Carte de Connexion */}
+            {/* ── 2. CARTE DE CONNEXION ── */}
             <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_15px_60px_-15px_rgba(0,0,0,0.05)] w-full max-w-md border border-gray-100">
                 
                 <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-8 md:mb-10 gap-4">
                     <div className="text-center sm:text-left">
                         <h1 className="text-2xl md:text-3xl font-semibold text-gray-950 tracking-tighter">Connexion</h1>
-                        <p className="text-xs md:text-sm text-gray-400 mt-1.5">Accédez à votre compte</p>
+                        <p className="text-xs md:text-sm text-gray-400 mt-1.5">Accédez à votre espace sécurisé</p>
                     </div>
                     
                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
@@ -74,7 +82,7 @@ export default function Login() {
                     </div>
                 </div>
 
-                {/* Affichage de l'erreur si elle existe */}
+                {/* Affichage des erreurs dynamiques de l'API */}
                 {error && (
                     <div className="mb-6 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 text-xs italic rounded">
                         {error}
@@ -119,7 +127,7 @@ export default function Login() {
                         </div>
                     </div>
 
-                    {/* Checkbox Rester connecté & Lien Oubli */}
+                    {/* Checkbox Rester connecté & Mot de passe oublié */}
                     <div className="flex items-center justify-between px-1">
                         <label className="flex items-center gap-2 cursor-pointer group">
                             <input 
@@ -138,11 +146,12 @@ export default function Login() {
                         </Link>
                     </div>
 
+                    {/* Bouton de Soumission */}
                     <button 
                         type="submit" disabled={loading}
-                        className={`w-full min-h-[48px] ${loading ? 'bg-gray-400' : 'bg-[#9ADE7B] hover:bg-[#89cf6a]'} text-gray-900 font-bold py-3.5 md:py-4 rounded-xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] mt-6 shadow-sm text-sm md:text-base uppercase`}
+                        className={`w-full min-h-[48px] ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#9ADE7B] hover:bg-[#89cf6a]'} text-gray-900 font-bold py-3.5 md:py-4 rounded-xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] mt-6 shadow-sm text-sm md:text-base uppercase`}
                     >
-                        {loading ? "Connexion en cours..." : "Se connecter"} <ArrowRight className="w-5 h-5" />
+                        {loading ? "Vérification..." : "Se connecter"} <ArrowRight className="w-5 h-5" />
                     </button>
                 </form>
 
@@ -154,16 +163,16 @@ export default function Login() {
                 </p>
             </div>
 
-            {/* 3. Footer */}
+            {/* ── 3. FOOTER ── */}
             <footer className="mt-10 md:mt-14 text-center w-full px-4 mb-6">
                 <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-bold text-gray-400 uppercase mb-5 tracking-wide">
-                    <Link to="/privacy" className="hover:text-gray-600">Police de Confidentialité</Link>
+                    <Link to="/privacy" className="hover:text-gray-600">Politique de Confidentialité</Link>
                     <Link to="/terms" className="hover:text-gray-600">Conditions d'utilisation</Link>
                     <Link to="/support" className="hover:text-gray-600">Support</Link>
                 </div>
                 <p className="text-[9px] md:text-[10px] text-gray-400 leading-relaxed uppercase tracking-wider">
                     © 2026 VOLTANETWORK SERVICES.<br/>
-                    INFRASTRUCTURE DE SECURITE.
+                    INFRASTRUCTURE DE SÉCURITÉ ET CONTRÔLE.
                 </p>
             </footer>
         </div>

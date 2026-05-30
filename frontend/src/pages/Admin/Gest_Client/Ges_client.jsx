@@ -1,25 +1,9 @@
-import React, { useState, useMemo } from "react";
-import { CircleOff, OctagonMinus, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { CircleOff, OctagonMinus, CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // ==========================================
-// 1. DONNÉES LOCALES EMBARQUÉES
-// ==========================================
-const clientDataList = [
-    { id: 1, nom: "Alice", email: "alice@test.com", statut: "débloqué" },
-    { id: 2, nom: "Bob", email: "bob@test.com", statut: "bloqué" },
-    { id: 3, nom: "Chris", email: "chris@test.com", statut: "débloqué" },
-    { id: 4, nom: "David", email: "david@test.com", statut: "bloqué" },
-    { id: 5, nom: "Emma", email: "emma@test.com", statut: "débloqué" },
-    { id: 6, nom: "Frank", email: "frank@test.com", statut: "débloqué" },
-    { id: 7, nom: "Grace", email: "grace@test.com", statut: "bloqué" },
-    { id: 8, nom: "Hugo", email: "hugo@test.com", statut: "débloqué" },
-    { id: 9, nom: "Iris", email: "iris@test.com", statut: "bloqué" },
-    { id: 10, nom: "Jack", email: "jack@test.com", statut: "débloqué" }
-];
-
-// ==========================================
-// 2. FONCTIONS DE LOGIQUE
+// 1. FONCTIONS DE LOGIQUE VISUELLE
 // ==========================================
 function Couleur_Nom_Icon(lettre = "") {
     const colorMap = {
@@ -35,41 +19,106 @@ function Couleur_Nom_Icon(lettre = "") {
 }
 
 // ==========================================
-// 3. SOUS-COMPOSANT : CON_GESTION_CLIENT
+// 2. SOUS-COMPOSANT : CON_GESTION_CLIENT
 // ==========================================
 function Con_gestion_client() {
+    const [clients, setClients] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filtreEtat, setFiltreEtat] = useState("tous");
+    const [dateDebut, setDateDebut] = useState("");
+    const [dateFin, setDateFin] = useState("");
+    
     const [currentPage, setCurrentPage] = useState(1);
     const [opendeploque, setOpenDeploque] = useState(false); 
     const [openbloquer, setOpenbloquer] = useState(false);   
     const [selectedUser, setSelectedUser] = useState(null);
+    const [btnLoading, setBtnLoading] = useState(false);
+
     const itemsPerPage = 10;
     const navigate = useNavigate();
 
-    // Filtrage
-    const filteredData = useMemo(() => {
-        if (filtreEtat === "tous") return clientDataList;
-        return clientDataList.filter((item) => item.statut === filtreEtat);
-    }, [filtreEtat]);
+    // Récupération des données depuis Laravel API
+    const fetchClients = useCallback(async () => {
+        setLoading(true);
+        try {
+            const token = localStorage.getItem("auth_token"); // Récupération de ton token Sanctum
+            
+            // Construction des paramètres d'URL (Query Params)
+            const params = new URLSearchParams({
+                statut: filtreEtat,
+                date_debut: dateDebut,
+                date_fin: dateFin
+            });
 
-    // Pagination
-    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const response = await fetch(`http://localhost:8000/api/admin/clients?${params.toString()}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setClients(data);
+            } else {
+                console.error("Erreur lors de la récupération des clients");
+            }
+        } catch (error) {
+            console.error("Erreur réseau :", error);
+        } finally {
+            setLoading(false);
+        }
+    }, [filtreEtat, dateDebut, dateFin]);
+
+    // Re-charger les données dès qu'un filtre change
+    useEffect(() => {
+        fetchClients();
+        setCurrentPage(1);
+    }, [fetchClients]);
+
+    // Action de Blocage / Déblocage en BDD
+    const handleToggleStatut = async () => {
+        if (!selectedUser) return;
+        setBtnLoading(true);
+        try {
+            const token = localStorage.getItem("auth_token");
+            const response = await fetch(`http://localhost:8000/api/admin/clients/${selectedUser.id}/toggle-statut`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Fermer les modals et rafraîchir la liste complète
+                setOpenDeploque(false);
+                setOpenbloquer(false);
+                fetchClients(); 
+            } else {
+                alert("Impossible de modifier le statut du client.");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la modification :", error);
+        } finally {
+            setBtnLoading(false);
+        }
+    };
+
+    // Pagination interne
+    const totalPages = Math.ceil(clients.length / itemsPerPage);
     const indexLastItem = currentPage * itemsPerPage;
     const indexFirstItem = indexLastItem - itemsPerPage;
-    const currentItems = filteredData.slice(indexFirstItem, indexLastItem);
-
-    const handleFilterChange = (statut) => {
-        setFiltreEtat(statut);
-        setCurrentPage(1);
-    };
+    const currentItems = clients.slice(indexFirstItem, indexLastItem);
 
     const openModal = (user, e) => {
         e.stopPropagation(); 
         setSelectedUser(user);
         if (user.statut === "débloqué") {
-            setOpenDeploque(true);
+            setOpenDeploque(true); // Ouvre modal pour "Bloquer"
         } else if (user.statut === "bloqué") {
-            setOpenbloquer(true);
+            setOpenbloquer(true); // Ouvre modal pour "Débloquer"
         }
     };
 
@@ -87,7 +136,7 @@ function Con_gestion_client() {
                                     ? "bg-[#9ADE7B] text-white shadow-sm" 
                                     : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-100"
                             }`}
-                            onClick={() => handleFilterChange(type)}
+                            onClick={() => setFiltreEtat(type)}
                         >
                             {type === "tous" ? "Tous" : type === "débloqué" ? "Débloqués" : "Bloqués"}
                         </button>
@@ -96,14 +145,24 @@ function Con_gestion_client() {
 
                 <div className="flex flex-wrap gap-3 items-center">
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filtrer du :</span>
-                    <input type="date" className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" />
+                    <input 
+                        type="date" 
+                        value={dateDebut}
+                        onChange={(e) => setDateDebut(e.target.value)}
+                        className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
+                    />
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">au :</span>
-                    <input type="date" className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" />
+                    <input 
+                        type="date" 
+                        value={dateFin}
+                        onChange={(e) => setDateFin(e.target.value)}
+                        className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
+                    />
                 </div>
             </div>
 
             {/* Tableau des Clients */}
-            <div className="w-full overflow-x-auto rounded-2xl border border-gray-100 shadow-xl bg-white">
+            <div className="w-full overflow-x-auto rounded-2xl border border-gray-100 shadow-xl bg-white position-relative">
                 <table className="w-full border-collapse text-left">
                     <thead>
                         <tr className="bg-gray-50 border-b border-gray-100">
@@ -114,7 +173,16 @@ function Con_gestion_client() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {currentItems.length > 0 ? (
+                        {loading ? (
+                            <tr>
+                                <td colSpan="4" className="p-12 text-center text-gray-400 text-sm font-medium">
+                                    <div className="flex flex-col items-center gap-2 justify-center">
+                                        <Loader2 className="animate-[spin_0.5s_linear_infinite] text-[#9ADE7B]" size={24} />
+                                        <span>Chargement des clients de Volta Network...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : currentItems.length > 0 ? (
                             currentItems.map((user) => (
                                 <tr 
                                     key={user.id} 
@@ -169,7 +237,7 @@ function Con_gestion_client() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {!loading && totalPages > 1 && (
                 <div className="flex justify-end items-center gap-1.5 mt-2">
                     <button
                         disabled={currentPage === 1}
@@ -201,9 +269,7 @@ function Con_gestion_client() {
                 </div>
             )}
 
-            {/* ========================================== */}
             {/* MODAL : CONFIRMER LE BLOCAGE */}
-            {/* ========================================== */}
             {opendeploque && selectedUser && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[999] p-4" onClick={() => setOpenDeploque(false)}>
                     <div className="bg-white p-6 md:p-8 rounded-2xl max-w-[440px] w-full shadow-2xl border border-gray-50" onClick={(e) => e.stopPropagation()}>
@@ -231,16 +297,16 @@ function Con_gestion_client() {
                         </div>
 
                         <div className="mt-6 flex justify-between gap-3">
-                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenDeploque(false)}>Annuler</button>
-                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all border-none shadow-sm active:scale-95">Confirmer</button>
+                            <button disabled={btnLoading} className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenDeploque(false)}>Annuler</button>
+                            <button disabled={btnLoading} onClick={handleToggleStatut} className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all border-none shadow-sm active:scale-95 flex items-center justify-center">
+                                {btnLoading ? <Loader2 className="animate-spin" size={16} /> : "Confirmer"}
+                            </button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* ========================================== */}
             {/* MODAL : CONFIRMER LE DÉBLOCAGE */}
-            {/* ========================================== */}
             {openbloquer && selectedUser && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[999] p-4" onClick={() => setOpenbloquer(false)}>
                     <div className="bg-white p-6 md:p-8 rounded-2xl max-w-[440px] w-full shadow-2xl border border-gray-50" onClick={(e) => e.stopPropagation()}>
@@ -261,8 +327,10 @@ function Con_gestion_client() {
                         </p>
 
                         <div className="mt-6 flex justify-between gap-3">
-                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenbloquer(false)}>Annuler</button>
-                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-[#9ADE7B] hover:bg-[#89cf6c] text-white rounded-xl transition-all border-none shadow-sm active:scale-95">Rétablir les accès</button>
+                            <button disabled={btnLoading} className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenbloquer(false)}>Annuler</button>
+                            <button disabled={btnLoading} onClick={handleToggleStatut} className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-[#9ADE7B] hover:bg-[#89cf6c] text-white rounded-xl transition-all border-none shadow-sm active:scale-95 flex items-center justify-center">
+                                {btnLoading ? <Loader2 className="animate-spin" size={16} /> : "Rétablir les accès"}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -272,7 +340,7 @@ function Con_gestion_client() {
 }
 
 // ==========================================
-// 4. COMPOSANT PRINCIPAL
+// 3. COMPOSANT PRINCIPAL
 // ==========================================
 export default function Gest_client() {
     return (
