@@ -5,18 +5,18 @@ import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 
 // --- IMPORTS ADMIN (Mouga) ---
-import Dashboard from './components/Administrateur/Dashboard/dashboard';
-import Gest_client from './components/Administrateur/Gest_Client/Ges_client';
-import ClientDetail from './components/Administrateur/Gest_Client/detail_client';
-import Gest_produit from './components/Administrateur/Gest_Produit/Ges_produit';
-import ProductDetail from './components/Administrateur/Gest_Produit/detail_produit';
-import Gest_commande from './components/Administrateur/Gest_Commande/Ges_commande';
-import Detail_com from './components/Administrateur/Gest_Commande/detail_com';
-import Gest_Admin from './components/Administrateur/Gest_Admin/Ges_Admin';
-import Ajout_Admin from './components/Administrateur/Gest_Admin/ajout_admin';
-import AdminDetail from './components/Administrateur/Gest_Admin/detail_admin';
-import Profil from './components/Administrateur/Profil/Profil';
-import Gest_Acces from './components/Administrateur/Ges_droit_Acces/Gest_Acces';
+import Dashboard from './pages/Admin/Dashboard/dashboard';
+import Gest_client from './pages/Admin/Gest_Client/Ges_client';
+import ClientDetail from './pages/Admin/Gest_Client/detail_client';
+import Gest_produit from './pages/Admin/Gest_Produit/Ges_produit';
+import ProductDetail from './pages/Admin/Gest_Produit/detail_produit';
+import Gest_commande from './pages/Admin/Gest_Commande/Ges_commande';
+import Detail_com from './pages/Admin/Gest_Commande/detail_com';
+import Gest_Admin from './pages/Admin/Gest_Admin/Ges_Admin';
+import Ajout_Admin from './pages/Admin/Gest_Admin/ajout_admin';
+import AdminDetail from './pages/Admin/Gest_Admin/detail_admin';
+import Profil from './pages/Admin/Profil/Profil';
+import Gest_Acces from './pages/Admin/Ges_droit_Acces/Gest_Acces';
 
 // --- IMPORTS CLIENTS (Gaby) ---
 import Login from './pages/Client/Connexion';

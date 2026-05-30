@@ -1,0 +1,291 @@
+import React, { useState, useMemo } from "react";
+import { CircleOff, OctagonMinus, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+// ==========================================
+// 1. DONNÉES LOCALES EMBARQUÉES
+// ==========================================
+const clientDataList = [
+    { id: 1, nom: "Alice", email: "alice@test.com", statut: "débloqué" },
+    { id: 2, nom: "Bob", email: "bob@test.com", statut: "bloqué" },
+    { id: 3, nom: "Chris", email: "chris@test.com", statut: "débloqué" },
+    { id: 4, nom: "David", email: "david@test.com", statut: "bloqué" },
+    { id: 5, nom: "Emma", email: "emma@test.com", statut: "débloqué" },
+    { id: 6, nom: "Frank", email: "frank@test.com", statut: "débloqué" },
+    { id: 7, nom: "Grace", email: "grace@test.com", statut: "bloqué" },
+    { id: 8, nom: "Hugo", email: "hugo@test.com", statut: "débloqué" },
+    { id: 9, nom: "Iris", email: "iris@test.com", statut: "bloqué" },
+    { id: 10, nom: "Jack", email: "jack@test.com", statut: "débloqué" }
+];
+
+// ==========================================
+// 2. FONCTIONS DE LOGIQUE
+// ==========================================
+function Couleur_Nom_Icon(lettre = "") {
+    const colorMap = {
+        A: "#E57373", B: "#64B5F6", C: "#81C784", D: "#BA68C8",
+        E: "#FFB74D", F: "#4DD0E1", G: "#F06292", H: "#7986CB",
+        I: "#388E3C", J: "#FFD54F", K: "#1976D2", L: "#D32F2F",
+        M: "#7B1FA2", N: "#F57C00", O: "#00ACC1", P: "#C2185B",
+        Q: "#90A4AE", R: "#A5D6A7", S: "#4FC3F7", T: "#FFF176",
+        U: "#CE93D8", V: "#FFCC80", W: "#546E7A", X: "#607D8B",
+        Y: "#C5E1A5", Z: "#EF9A9A"
+    };
+    return colorMap[lettre] || "#9ca3af";
+}
+
+// ==========================================
+// 3. SOUS-COMPOSANT : CON_GESTION_CLIENT
+// ==========================================
+function Con_gestion_client() {
+    const [filtreEtat, setFiltreEtat] = useState("tous");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [opendeploque, setOpenDeploque] = useState(false); 
+    const [openbloquer, setOpenbloquer] = useState(false);   
+    const [selectedUser, setSelectedUser] = useState(null);
+    const itemsPerPage = 10;
+    const navigate = useNavigate();
+
+    // Filtrage
+    const filteredData = useMemo(() => {
+        if (filtreEtat === "tous") return clientDataList;
+        return clientDataList.filter((item) => item.statut === filtreEtat);
+    }, [filtreEtat]);
+
+    // Pagination
+    const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+    const indexLastItem = currentPage * itemsPerPage;
+    const indexFirstItem = indexLastItem - itemsPerPage;
+    const currentItems = filteredData.slice(indexFirstItem, indexLastItem);
+
+    const handleFilterChange = (statut) => {
+        setFiltreEtat(statut);
+        setCurrentPage(1);
+    };
+
+    const openModal = (user, e) => {
+        e.stopPropagation(); 
+        setSelectedUser(user);
+        if (user.statut === "débloqué") {
+            setOpenDeploque(true);
+        } else if (user.statut === "bloqué") {
+            setOpenbloquer(true);
+        }
+    };
+
+    return (
+        <div className="flex flex-col gap-6 w-full">
+            {/* Barre de Filtres */}
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between w-full gap-4 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">Statut :</span>
+                    {["tous", "débloqué", "bloqué"].map((type) => (
+                        <button 
+                            key={type}
+                            className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-xl cursor-pointer border-none transition-all active:scale-95 ${
+                                filtreEtat === type 
+                                    ? "bg-[#9ADE7B] text-white shadow-sm" 
+                                    : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-100"
+                            }`}
+                            onClick={() => handleFilterChange(type)}
+                        >
+                            {type === "tous" ? "Tous" : type === "débloqué" ? "Débloqués" : "Bloqués"}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex flex-wrap gap-3 items-center">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Filtrer du :</span>
+                    <input type="date" className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" />
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">au :</span>
+                    <input type="date" className="bg-white border border-gray-200 text-gray-700 p-2 text-xs rounded-xl outline-none font-sans font-medium focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" />
+                </div>
+            </div>
+
+            {/* Tableau des Clients */}
+            <div className="w-full overflow-x-auto rounded-2xl border border-gray-100 shadow-xl bg-white">
+                <table className="w-full border-collapse text-left">
+                    <thead>
+                        <tr className="bg-gray-50 border-b border-gray-100">
+                            <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Nom complet</th>
+                            <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Email</th>
+                            <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Statut</th>
+                            <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {currentItems.length > 0 ? (
+                            currentItems.map((user) => (
+                                <tr 
+                                    key={user.id} 
+                                    onClick={() => navigate(`/admin/users/${user.id}`)}
+                                    className="hover:bg-gray-50/80 transition-colors cursor-pointer group"
+                                >
+                                    <td className="p-4">
+                                        <div className="flex items-center gap-3">
+                                            <div 
+                                                style={{ backgroundColor: Couleur_Nom_Icon(user.nom?.charAt(0).toUpperCase() || "") }}
+                                                className="h-9 w-9 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-sm shrink-0" 
+                                            >
+                                                {user.nom?.charAt(0).toUpperCase() || ""}
+                                            </div>
+                                            <h3 className="font-bold text-sm text-gray-800 m-0 group-hover:text-gray-900 transition-colors">{user.nom}</h3>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-xs font-medium text-gray-500">{user.email}</td>
+                                    <td className="p-4">
+                                        <span className={`inline-flex items-center gap-1.5 py-1 px-2.5 rounded-xl text-[10px] font-bold tracking-wider uppercase ${
+                                            user.statut === "débloqué" 
+                                                ? "bg-[#9ADE7B]/20 text-[#1A4301]" 
+                                                : "bg-red-50 text-red-600"
+                                        }`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${user.statut === "débloqué" ? "bg-[#9ADE7B]" : "bg-red-500"}`} />
+                                            {user.statut}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <button 
+                                            className={`px-3 py-1.5 border-none rounded-xl text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all active:scale-95 text-white ${
+                                                user.statut === "débloqué"
+                                                    ? "bg-red-500 hover:bg-red-600"
+                                                    : "bg-[#9ADE7B] hover:bg-[#89cf6c]"
+                                            }`}
+                                            onClick={(e) => openModal(user, e)}
+                                        >
+                                            {user.statut === "débloqué" ? "Bloquer" : "Débloquer"}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="p-8 text-center text-gray-400 text-sm font-medium">
+                                    Aucun client trouvé
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex justify-end items-center gap-1.5 mt-2">
+                    <button
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        className="p-2 cursor-pointer bg-white rounded-xl border border-gray-100 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors active:scale-95"
+                    >
+                        <ChevronLeft size={16} />
+                    </button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                            key={page}
+                            className={`w-9 h-9 flex items-center justify-center text-xs font-bold rounded-xl cursor-pointer transition-all active:scale-95 ${
+                                currentPage === page 
+                                    ? "bg-[#9ADE7B] text-white shadow-sm border-none" 
+                                    : "bg-white border border-gray-100 text-gray-600 hover:bg-gray-50"
+                            }`}
+                            onClick={() => setCurrentPage(page)}
+                        >
+                            {page}
+                        </button>
+                    ))}
+                    <button
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        className="p-2 cursor-pointer bg-white rounded-xl border border-gray-100 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors active:scale-95"
+                    >
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
+            )}
+
+            {/* ========================================== */}
+            {/* MODAL : CONFIRMER LE BLOCAGE */}
+            {/* ========================================== */}
+            {opendeploque && selectedUser && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[999] p-4" onClick={() => setOpenDeploque(false)}>
+                    <div className="bg-white p-6 md:p-8 rounded-2xl max-w-[440px] w-full shadow-2xl border border-gray-50" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-red-50 text-red-500 flex items-center justify-center rounded-xl shrink-0">
+                                <CircleOff size={20}/>
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900 m-0 tracking-tight">Bloquer le client ?</h2>
+                        </div>
+
+                        <div className="mt-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Cible</span>
+                            <span className="text-sm font-bold text-gray-800">{selectedUser.nom}</span>
+                        </div>
+                        
+                        <p className="mt-4 text-gray-500 text-xs leading-relaxed text-justify">
+                            Êtes-vous sûr de vouloir bloquer ce client ? Cette action restreindra instantanément ses accès sur l'ensemble du réseau de <span className="font-semibold text-gray-700">VOLTA NETWORK SERVICES</span>.
+                        </p>
+
+                        <div className="mt-4 bg-red-50/50 p-3.5 rounded-xl border border-red-100/50">
+                            <h3 className="text-red-700 m-0 flex gap-1.5 items-center font-bold text-xs uppercase tracking-wider">
+                                <OctagonMinus size={14}/> <span>Impact critique</span>
+                            </h3>
+                            <p className="text-[11px] text-red-600/90 font-medium mt-1 mb-0">Tous les nœuds de communication actifs seront coupés immédiatement.</p>
+                        </div>
+
+                        <div className="mt-6 flex justify-between gap-3">
+                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenDeploque(false)}>Annuler</button>
+                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all border-none shadow-sm active:scale-95">Confirmer</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ========================================== */}
+            {/* MODAL : CONFIRMER LE DÉBLOCAGE */}
+            {/* ========================================== */}
+            {openbloquer && selectedUser && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-[999] p-4" onClick={() => setOpenbloquer(false)}>
+                    <div className="bg-white p-6 md:p-8 rounded-2xl max-w-[440px] w-full shadow-2xl border border-gray-50" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-[#9ADE7B]/20 text-[#1A4301] flex items-center justify-center rounded-xl shrink-0">
+                                <CheckCircle2 size={20}/>
+                            </div>
+                            <h2 className="text-xl font-bold text-gray-900 m-0 tracking-tight">Débloquer le client ?</h2>
+                        </div>
+
+                        <div className="mt-4 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Cible</span>
+                            <span className="text-sm font-bold text-gray-800">{selectedUser.nom}</span>
+                        </div>
+                        
+                        <p className="mt-4 text-gray-500 text-xs leading-relaxed text-justify">
+                            Êtes-vous sûr de vouloir réactiver ce client ? Ses permissions de transit et de connexion réseau seront immédiatement rétablies sur la plateforme.
+                        </p>
+
+                        <div className="mt-6 flex justify-between gap-3">
+                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-gray-50 hover:bg-gray-100 text-gray-500 rounded-xl transition-all border-none active:scale-95" onClick={() => setOpenbloquer(false)}>Annuler</button>
+                            <button className="flex-1 py-3 text-xs uppercase tracking-wider font-bold cursor-pointer bg-[#9ADE7B] hover:bg-[#89cf6c] text-white rounded-xl transition-all border-none shadow-sm active:scale-95">Rétablir les accès</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ==========================================
+// 4. COMPOSANT PRINCIPAL
+// ==========================================
+export default function Gest_client() {
+    return (
+        <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] px-4 md:px-8 w-full box-border">
+            <div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-gray-900 m-0">
+                    Gestion des <span className="text-[#9ADE7B]">Clients</span>
+                </h1>
+                <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mt-1">
+                    Volta Network Services Panel
+                </p>
+            </div>
+            <Con_gestion_client />
+        </div>
+    );
+}
