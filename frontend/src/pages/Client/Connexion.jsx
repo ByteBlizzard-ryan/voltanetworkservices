@@ -3,9 +3,12 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../../assets/logo.svg';
+// 🛠️ Import du hook pour gérer l'état global des permissions de la Sidebar
+import { useSidebar } from '../Admin/Context_sider';
 
 export default function Login() {
     const navigate = useNavigate();
+    const { setPermissions } = useSidebar(); // 👈 Récupération de la fonction de mise à jour des droits
     
     // États pour la gestion de l'interface et des données
     const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +28,7 @@ export default function Login() {
         };
 
         try {
-            // Appel à ton contrôleur Laravel mis à jour
+            // Appel à ton contrôleur Laravel
             const response = await axios.post('http://127.0.0.1:8000/api/login', loginData);
             
             // 1. Stockage du token de sécurité
@@ -37,16 +40,54 @@ export default function Login() {
             // 3. Stockage des infos de profil utilisateur
             localStorage.setItem('user', JSON.stringify(response.data.user));
 
-            // 4. Redirection intelligente basée sur la réponse du serveur (Backoffice ou Client-office)
+            // 🔍 4. SCRIPT DE DIAGNOSTIC DE SÉCURITÉ INTÉGRÉ
+            console.log("=========================================");
+            console.log("🛠️ RUNNING DIAGNOSTIC: CONTENU DU LOCALSTORAGE 🛠️");
+            const testUserJson = localStorage.getItem('user');
+            console.log("Données brutes 'user' stockées :", testUserJson);
+            
+            try {
+                const parsedUserTest = JSON.parse(testUserJson);
+                console.log("Données 'user' décodées (JSON.parse) :", parsedUserTest);
+                console.log("Objet 'permission' détecté :", parsedUserTest?.permission);
+            } catch (jsonErr) {
+                console.error("Échec critique lors du parsing du localStorage :", jsonErr);
+            }
+            console.log("=========================================");
+
+            // 🛠️ 5. Injection dynamique des permissions dans l'état global React
+            if (response.data.user && response.data.user.permission) {
+                const userPerms = response.data.user.permission;
+                
+                // Synchronisé à 100% avec les colonnes de ta table SQL 'permissions'
+                setPermissions({
+                    tableau_de_bord: Boolean(userPerms.tableau_de_bord),
+                    clients: Boolean(userPerms.clients),
+                    produits: Boolean(userPerms.produits),
+                    commandes: Boolean(userPerms.commandes),
+                    administrateurs: Boolean(userPerms.administrateurs),
+                    droits_acces_admin: Boolean(userPerms.droits_acces_admin), 
+                });
+            } else {
+                console.warn("⚠️ Attention : Aucune permission reçue de Laravel pour cet utilisateur.");
+                setPermissions({
+                    tableau_de_bord: false,
+                    clients: false,
+                    produits: false,
+                    commandes: false,
+                    administrateurs: false,
+                    droits_acces_admin: false,
+                });
+            }
+
+            // 6. Redirection intelligente basée sur la réponse du serveur
             if (response.data.redirect_to) {
                 navigate(response.data.redirect_to);
             } else {
-                // Repli de sécurité au cas où
                 navigate('/');
             }
             
         } catch (err) {
-            // Gestion des erreurs (Identifiants invalides, Compte non vérifié par OTP, etc.)
             if (err.response && err.response.data) {
                 setError(err.response.data.message || "Une erreur est survenue lors de la connexion.");
             } else {
@@ -82,7 +123,6 @@ export default function Login() {
                     </div>
                 </div>
 
-                {/* Affichage des erreurs dynamiques de l'API */}
                 {error && (
                     <div className="mb-6 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 text-xs italic rounded">
                         {error}

@@ -29,6 +29,9 @@ Route::prefix('admin/administrateurs')->group(function () {
     Route::patch('{id}/toggle-status', [AdminController::class, 'toggleStatus']);
 });
 
+// 🛠️ AJOUT DE LA ROUTE DES PERMISSIONS ICI
+Route::put('/update-permissions/{id}', [AdminController::class, 'updatePermissions']);
+
 // Route pour l'inscription et la vérification OTP
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);

@@ -9,22 +9,53 @@ export function SidebarProvider({ children }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isOpenMobile, setIsOpenMobile] = useState(false);
+  
+  // 🛠️ ÉTAT INITIALISE : Mappe directement les données de la table 'permissions'
+  const [permissions, setPermissions] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        const parsedUser = JSON.parse(savedUser);
+        // Si l'utilisateur possède l'objet relationnel 'permission' renvoyé par Laravel
+        if (parsedUser && parsedUser.permission) {
+          const p = parsedUser.permission;
+          return {
+            tableau_de_bord: Boolean(p.tableau_de_bord),
+            clients: Boolean(p.clients),
+            produits: Boolean(p.produits),
+            commandes: Boolean(p.commandes),
+            administrateurs: Boolean(p.administrateurs),
+            droits_acces_admin: Boolean(p.droits_acces_admin),
+          };
+        }
+      } catch (error) {
+        console.error("Erreur lors de la lecture des permissions stockées :", error);
+      }
+    }
+
+    // Valeurs par défaut si personne n'est connecté ou si c'est un client standard
+    return {
+      tableau_de_bord: false,
+      clients: false,
+      produits: false,
+      commandes: false,
+      administrateurs: false,
+      droits_acces_admin: false,
+    };
+  });
 
   // Gestion du redimensionnement (Resize) sécurisé
   useEffect(() => {
-    // Exécuté uniquement côté client
     const checkMediaQuery = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
 
       if (!mobile) {
-        setIsOpenMobile(false); // Réinitialise le menu mobile si on passe sur grand écran
+        setIsOpenMobile(false);
       }
     };
 
-    // Initialisation au montage
     checkMediaQuery();
-
     window.addEventListener("resize", checkMediaQuery);
     return () => window.removeEventListener("resize", checkMediaQuery);
   }, []);
@@ -46,7 +77,9 @@ export function SidebarProvider({ children }) {
         isMobile,
         isOpenMobile,
         toggleSidebar,
-        setIsOpenMobile // Exposé au cas où vous auriez besoin de fermer explicitement au clic sur un lien
+        setIsOpenMobile,
+        permissions,    
+        setPermissions, 
       }}
     >
       {children}

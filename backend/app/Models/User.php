@@ -61,4 +61,9 @@ class User extends Authenticatable
             'id_utilisateur'     // La clé locale/primaire dans la table users
         );
     }
+
+        public function permission()
+    {
+        return $this->hasOne(Permission::class, 'id_utilisateur_permission', 'id_utilisateur');
+    }
 }

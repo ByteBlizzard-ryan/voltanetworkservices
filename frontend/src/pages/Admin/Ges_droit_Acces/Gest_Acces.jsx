@@ -1,28 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDownCircle, ChevronUpCircle } from 'lucide-react';
 
-// ── 1. DONNÉES INTÉGRÉES DIRECTEMENT ────────────────────────────────────────
-const initialData = [
-  { id: "1", nom: "Jean Paul", role: "RESPONSABLE LOGISTIQUE", etat: "actif", dashboard: true, clients: true, produits: false, commandes: true, administrateurs: false },
-  { id: "2", nom: "Marie Claire", role: "ASSISTANTE ADMINISTRATIVE", etat: "inactif", dashboard: false, clients: false, produits: false, commandes: false, administrateurs: false },
-  { id: "3", nom: "Patrick Ndzi", role: "CHEF DE PROJET", etat: "actif", dashboard: true, clients: true, produits: true, commandes: true, administrateurs: false },
-  { id: "4", nom: "Sophie Kamga", role: "COMPTABLE", etat: "actif", dashboard: true, clients: false, produits: false, commandes: true, administrateurs: false },
-  { id: "5", nom: "Armand Tchoua", role: "DÉVELOPPEUR WEB", etat: "inactif", dashboard: false, clients: false, produits: false, commandes: false, administrateurs: false },
-  { id: "6", nom: "Linda Muna", role: "RESPONSABLE RH", etat: "actif", dashboard: true, clients: true, produits: true, commandes: true, administrateurs: true },
-  { id: "7", nom: "Kevin Mbarga", role: "TECHNICIEN RÉSEAU", etat: "actif", dashboard: false, clients: false, produits: false, commandes: false, administrateurs: false },
-  { id: "8", nom: "Estelle Ndzié", role: "SECRÉTAIRE", etat: "inactif", dashboard: false, clients: false, produits: false, commandes: false, administrateurs: false },
-  { id: "9", nom: "Brice Fotso", role: "ANALYSTE DATA", etat: "actif", dashboard: true, clients: false, produits: false, commandes: true, administrateurs: false },
-  { id: "10", nom: "Carine Ngo", role: "GESTIONNAIRE DE STOCK", etat: "actif", dashboard: true, clients: true, produits: true, commandes: true, administrateurs: true }
-];
-
-// Fonction API simulée pour l'enregistrement
+// ── 1. FONCTION API REELLE DE SAUVEGARDE (VERS LARAVEL) ───────────────────────
 const savePermissions = async (acces) => {
   try {
-    const response = await fetch("http://localhost:3000/update-permissions", {
+    const response = await fetch(`http://localhost:8000/api/update-permissions/${acces.id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
+      },
       body: JSON.stringify({
-        id: acces.id,
         dashboard: acces.dashboard,
         clients: acces.clients,
         produits: acces.produits,
@@ -31,17 +19,14 @@ const savePermissions = async (acces) => {
       })
     });
 
-    const result = await response.json();
-    console.log(result);
-
     if (response.ok) {
-      alert("Permissions mises à jour avec succès !");
+      alert(`Permissions de ${acces.nom} mises à jour avec succès !`);
     } else {
-      alert("Erreur de mise à jour");
+      alert("Erreur lors de la mise à jour des privilèges sur le serveur.");
     }
   } catch (error) {
-    console.log(error);
-    alert("Erreur serveur");
+    console.error("Erreur réseau :", error);
+    alert("Erreur de connexion avec le serveur Laravel");
   }
 };
 
@@ -69,7 +54,36 @@ function Etat_acces(statut) {
 // ── 3. SOUS-COMPOSANT DE GESTION DES CONTENUS ───────────────────────────────
 function Con_gest_acces() {
   const [ouvert, setOuvert] = useState({});
-  const [accesData, setAccesData] = useState(initialData);
+  const [accesData, setAccesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 🛠️ CHARGEMENT DYNAMIQUE DES ADMINS ET PERMISSIONS DEPUIS LARAVEL
+  useEffect(() => {
+    const fetchAdmins = async () => {
+      try {
+        // Correction de l'URL ici pour inclure le préfixe /admin/ défini dans Laravel
+        const response = await fetch("http://localhost:8000/api/admin/administrateurs", {
+          headers: { 
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setAccesData(data);
+        } else {
+          console.error("Erreur serveur lors de la récupération des admins");
+        }
+      } catch (error) {
+        console.error("Erreur réseau lors du chargement des admins :", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdmins();
+  }, []);
 
   const fonction_ouvert = (id) => {
     setOuvert((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -82,6 +96,10 @@ function Con_gest_acces() {
       )
     );
   };
+
+  if (loading) {
+    return <p className="text-center text-gray-400 font-medium py-12">Chargement des administrateurs...</p>;
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -193,7 +211,7 @@ function Con_gest_acces() {
           </div>
         ))
       ) : (
-        <p className="text-gray-400 font-medium text-center py-12 italic">Aucun droit d'accès disponible.</p>
+        <p className="text-gray-400 font-medium text-center py-12 italic">Aucun administrateur trouvé en base de données.</p>
       )}
     </div>
   );

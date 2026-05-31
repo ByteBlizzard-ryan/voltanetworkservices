@@ -5,22 +5,58 @@ import {
   KeyRound, Archive, ShoppingCart, Users, LayoutDashboard, 
   BrickWallShield, Menu, UserPen, Search 
 } from "lucide-react";
+// 🛠️ Import du hook useSidebar (on utilise le hook qui contient l'état de nos permissions)
 import { useSidebar } from "./Context_sider"; 
 import logo from "../../assets/logo.png";
 
 export default function AdminSidebar() {
-  const { isCollapsed, isMobile, isOpenMobile, toggleSidebar } = useSidebar();
+  const { isCollapsed, isMobile, isOpenMobile, toggleSidebar, permissions } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
 
+  // ── TABLEAU DES NAVIGATION ITEMS DYNAMISÉ ──────────────────────────────────
+  // 🛠️ Ajout d'une propriété "permissionKey" qui correspond aux clés stockées au login
   const navItems = [
-    { path: "/admin/dashboard", label: "Tableau de bord", icon: <LayoutDashboard size={18} /> },
-    { path: "/admin/users", label: "Clients", icon: <Users size={18} /> },
-    { path: "/admin/products", label: "Produits", icon: <Archive size={18} /> },
-    { path: "/admin/commande", label: "Commandes", icon: <ShoppingCart size={18} /> },
-    { path: "/admin/administrateur", label: "Administrateurs", icon: <BrickWallShield size={18} /> },
-    { path: "/admin/accesadmin", label: "Droits d'accès", icon: <KeyRound size={18} /> },
+    { 
+      path: "/admin/dashboard", 
+      label: "Tableau de bord", 
+      icon: <LayoutDashboard size={18} />, 
+      permissionKey: "tableau_de_bord" 
+    },
+    { 
+      path: "/admin/users", 
+      label: "Clients", 
+      icon: <Users size={18} />, 
+      permissionKey: "clients" 
+    },
+    { 
+      path: "/admin/products", 
+      label: "Produits", 
+      icon: <Archive size={18} />, 
+      permissionKey: "produits" 
+    },
+    { 
+      path: "/admin/commande", 
+      label: "Commandes", 
+      icon: <ShoppingCart size={18} />, 
+      permissionKey: "commandes" 
+    },
+    { 
+      path: "/admin/administateur", 
+      label: "Administrateurs", 
+      icon: <BrickWallShield size={18} />, 
+      permissionKey: "administrateurs" 
+    },
+    { 
+      path: "/admin/accesadmin", 
+      label: "Droits d'accès", 
+      icon: <KeyRound size={18} />, 
+      permissionKey: "droits_acces_admin" 
+    },
   ];
+
+  // 🛠️ FILTRAGE : On ne garde que les items où l'admin a la permission égale à true
+  const allowedNavItems = navItems.filter(item => permissions[item.permissionKey]);
 
   return (
     <>
@@ -48,7 +84,8 @@ export default function AdminSidebar() {
         </div>
 
         <ul className="flex-1 list-none p-3 m-0 flex flex-col gap-1 overflow-y-auto box-border">
-          {navItems.map((item) => {
+          {/* 🛠️ Remplacement de navItems.map par allowedNavItems.map */}
+          {allowedNavItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
               <li key={item.path}>
@@ -68,6 +105,13 @@ export default function AdminSidebar() {
               </li>
             );
           })}
+          
+          {/* Message de secours si un admin n'a absolument aucun droit actif */}
+          {allowedNavItems.length === 0 && (
+            <p className="text-[10px] text-center text-gray-400 font-semibold p-4 italic uppercase tracking-wider">
+              Aucun accès autorisé
+            </p>
+          )}
         </ul>
       </nav>
 

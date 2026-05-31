@@ -112,6 +112,13 @@ class AuthController extends Controller
         $userRole = strtoupper($user->role_utilisateur);
         $redirectTo = $userRole === 'ADMIN' ? '/admin/dashboard' : '/client/dashboard';
 
+        // 🛠️ On charge dynamiquement les permissions si c'est un ADMIN
+        $permissionData = null;
+        if ($userRole === 'ADMIN') {
+            $user->load('permission'); 
+            $permissionData = $user->permission;
+        }
+
         return response()->json([
             'message' => 'Connexion réussie.',
             'access_token' => $token,
@@ -120,7 +127,8 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id_utilisateur,
                 'nom_complet' => $user->nom_complet,
-                'email' => $user->email
+                'email' => $user->email,
+                'permission' => $permissionData // 👈 Transmis directement au localStorage de React
             ],
             'redirect_to' => $redirectTo
         ], 200);
@@ -181,7 +189,6 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Supprime le jeton d'accès utilisé pour cette requête sécurisée
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([

@@ -6,18 +6,35 @@ use App\Http\Controllers\Controller; // <-- ICI : On importe le Controller de ba
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Models\Permission; //
 
 class AdminController extends Controller
 {
-    // ── OBTENIR TOUS LES ADMINS
+    // ── OBTENIR TOUS LES ADMINS AVEC LEURS PERMISSIONS
     public function index()
     {
         try {
-            // Extraction des colonnes nécessaires (sans le password)
-            $admins = User::select('id_utilisateur', 'nom_complet', 'email', 'role_utilisateur', 'compte_est_actif')
-                          ->where('role_utilisateur', 'ADMIN')
-                          ->orderBy('created_at', 'desc')
-                          ->get();
+            // On charge l'admin ET sa ligne de permissions liée
+            $admins = User::with('permission')
+                ->where('role_utilisateur', 'ADMIN')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($admin) {
+                    return [
+                        'id' => $admin->id_utilisateur,
+                        'nom' => $admin->nom_complet,
+                        'email' => $admin->email,
+                        'role' => $admin->role_utilisateur,
+                        'etat' => $admin->compte_est_actif ? 'actif' : 'inactif',
+                        // Si aucune ligne de permission n'existe, on renvoie des valeurs par défaut
+                        'dashboard' => $admin->permission ? (bool)$admin->permission->tableau_de_bord : false,
+                        'clients' => $admin->permission ? (bool)$admin->permission->clients : false,
+                        'produits' => $admin->permission ? (bool)$admin->permission->produits : false,
+                        'commandes' => $admin->permission ? (bool)$admin->permission->commandes : false,
+                        'administrateurs' => $admin->permission ? (bool)$admin->permission->administrateurs : false,
+                        'droits_acces_admin' => $admin->permission ? (bool)$admin->permission->droits_acces_admin : false,
+                    ];
+                });
 
             return response()->json($admins, 200);
         } catch (\Exception $e) {
@@ -79,6 +96,40 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Impossible de modifier le statut de cet administrateur',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updatePermissions(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'dashboard' => 'required|boolean',
+            'clients' => 'required|boolean',
+            'produits' => 'required|boolean',
+            'commandes' => 'required|boolean',
+            'administrateurs' => 'required|boolean',
+        ]);
+
+        try {
+            // On cherche ou on crée la ligne de permission pour cet utilisateur
+            $permission = Permission::updateOrCreate(
+                ['id_utilisateur_permission' => $id],
+                [
+                    'tableau_de_bord' => $validated['dashboard'],
+                    'clients' => $validated['clients'],
+                    'produits' => $validated['produits'],
+                    'commandes' => $validated['commandes'],
+                    'administrateurs' => $validated['administrateurs'],
+                ]
+            );
+
+            return response()->json([
+                'message' => 'Permissions mises à jour avec succès !'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Erreur lors de la mise à jour des permissions',
                 'message' => $e->getMessage()
             ], 500);
         }
