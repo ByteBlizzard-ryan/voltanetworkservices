@@ -90,13 +90,6 @@ export default function Home() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="space-y-8 z-10"
           >
-            <div className="inline-flex items-center gap-2 bg-white border border-gray-100 shadow-sm px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-600">
-              <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              Systèmes de Grade Militaire
-            </div>
             
             <h1 className="text-5xl md:text-7xl font-black tracking-[ -0.05em] leading-[0.95]">
               LA SÉCURITÉ <br/>

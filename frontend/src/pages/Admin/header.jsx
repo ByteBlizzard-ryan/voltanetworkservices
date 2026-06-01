@@ -42,7 +42,7 @@ export default function AdminSidebar() {
       permissionKey: "commandes" 
     },
     { 
-      path: "/admin/administateur", 
+      path: "/admin/administrateur", 
       label: "Administrateurs", 
       icon: <BrickWallShield size={18} />, 
       permissionKey: "administrateurs" 
