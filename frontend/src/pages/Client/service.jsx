@@ -178,49 +178,68 @@ export default function Services() {
         </div>
       </section>
 
-      {/* --- SECTION 4: CONTACT CTA --- */}
-      <section className="py-20 px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mx-auto bg-[#1A1D1F] p-12 md:p-24 text-center space-y-10 relative overflow-hidden"
-        >
-          <div className="relative z-10">
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tighter mb-4">
-              Besoin d'une solution <br/> adaptée à vos besoins ?
-            </h2>
-            <p className="text-gray-400 max-w-xl mx-auto mb-10">
-              Nos ingénieurs sont prêts à concevoir votre architecture de sécurité personnalisée.
-            </p>
-            <LinkNav to="/contact">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-white text-black font-bold py-4 px-10 rounded-xl flex items-center justify-center max-w-[300px] gap-3 mx-auto transition-all group"
-            >
-              NOUS CONTACTER <Mail className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </motion.div>
-            </LinkNav>
-          </div>
-          
-          {/* Cercles décoratifs animés en fond */}
-          <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1], rotate: 360 }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute top-10 left-10 w-64 h-64 border border-white rounded-full"
-            />
-            <motion.div 
-              animate={{ scale: [1, 1.3, 1], rotate: -360 }}
-              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-              className="absolute bottom-10 right-10 w-96 h-96 border border-white rounded-full"
-            />
-          </div>
-        </motion.div>
-      </section>
+    {/* --- SECTION 4: CONTACT CTA (OPTIMISÉE) --- */}
+<section className="py-20 px-4 w-full">
+  <motion.div 
+    initial={{ opacity: 0, y: 50 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+    viewport={{ once: true }}
+    className="w-full bg-[#1A1D1F] p-12 md:p-24 text-center rounded-3xl relative overflow-hidden flex flex-col items-center justify-center min-h-[450px] shadow-2xl border border-gray-800"
+  >
+    {/* Effet de lueur radial en arrière-plan */}
+    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(154,222,123,0.05)_0%,transparent_70%)] pointer-events-none" />
 
+    <div className="relative z-10 max-w-4xl mx-auto space-y-8">
+      {/* Petit badge stylisé */}
+      <span className="inline-block bg-[#9ADE7B]/10 text-[#9ADE7B] border border-[#9ADE7B]/20 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest mb-2">
+        Prêt à démarrer ?
+      </span>
+
+      <h2 className="text-4xl md:text-6xl font-extrabold text-white tracking-tight leading-[1.15]">
+        Besoin d'une solution <br />
+        <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9ADE7B] to-[#b7f29c]">
+          adaptée à vos besoins ?
+        </span>
+      </h2>
+      
+      <p className="text-gray-400 max-w-2xl mx-auto text-base md:text-lg font-light leading-relaxed">
+        Nos ingénieurs sont prêts à concevoir votre architecture de sécurité personnalisée.
+      </p>
+      
+      <div className="pt-4">
+        <LinkNav to="/contact" className="inline-block">
+          <motion.div 
+            whileHover={{ 
+              scale: 1.05,
+              boxShadow: "0 0 30px rgba(154,222,123,0.35)",
+              backgroundColor: "#9ADE7B",
+              color: "#1A4301"
+            }}
+            whileTap={{ scale: 0.95 }}
+            className="bg-white text-black font-extrabold py-4 px-12 rounded-xl flex items-center justify-center gap-3 transition-colors duration-300 group cursor-pointer tracking-wide"
+          >
+            NOUS CONTACTER <Mail className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </motion.div>
+        </LinkNav>
+      </div>
+    </div>
+    
+    {/* Cercles décoratifs animés d'origine conservés en fond */}
+    <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none z-0">
+      <motion.div 
+        animate={{ scale: [1, 1.2, 1], rotate: 360 }}
+        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        className="absolute top-10 left-10 w-64 h-64 border border-white rounded-full"
+      />
+      <motion.div 
+        animate={{ scale: [1, 1.3, 1], rotate: -360 }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        className="absolute bottom-10 right-10 w-96 h-96 border border-white rounded-full"
+      />
+    </div>
+  </motion.div>
+</section>
     </div>
   );
 }
