@@ -13,7 +13,7 @@ export default function Gest_produit() {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // ── 1. CHARGEMENT DES PRODUITS DEPUIS L'API LARAVEL ──
+    // ── CHARGEMENT DES PRODUITS ──
     useEffect(() => {
         async function fetchProducts() {
             try {
@@ -37,7 +37,7 @@ export default function Gest_produit() {
         fetchProducts();
     }, []);
 
-    // ── 2. FILTRAGE DYNAMIQUE ──
+    // ── FILTRAGE DYNAMIQUE ──
     const filteredData = useMemo(() => {
         if (filtreEtat === "tous") return products;
         if (filtreEtat === "disponible") {
@@ -49,7 +49,7 @@ export default function Gest_produit() {
         return products;
     }, [filtreEtat, products]);
 
-    // ── 3. PAGINATION ──
+    // ── PAGINATION ──
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
     const indexLastItem = currentPage * itemsPerPage;
     const indexFirstItem = indexLastItem - itemsPerPage;
@@ -60,16 +60,14 @@ export default function Gest_produit() {
         setCurrentPage(1);
     };
 
-    // Redirection vers le détail (Utilise l'ID dynamique de ton App.jsx: id_product)
     const detailProduit = (id) => {
         navigate(`/admin/detail_produits/${id}`);
     };
 
-    // ── 4. ACTION INTERACTIVE : BASCULER LA DISPONIBILITÉ ──
+    // ── BASCULER LA DISPONIBILITÉ ──
     const statut_produit = async (id, currentStatus) => {
         const nvxStatut = Number(currentStatus) === 1 ? 0 : 1;
 
-        // Optimisme de l'interface : mise à jour visuelle immédiate pour fluidifier l'expérience
         setProducts(prevProducts =>
             prevProducts.map(prod =>
                 prod.id_produit === id ? { ...prod, est_disponible: nvxStatut } : prod
@@ -77,7 +75,6 @@ export default function Gest_produit() {
         );
 
         try {
-            // Requête PATCH pour synchroniser l'état en Base de données
             const response = await fetch(`http://localhost:8000/api/admin/products/${id}/toggle-disponibilite`, {
                 method: "PATCH",
                 headers: {
@@ -91,7 +88,6 @@ export default function Gest_produit() {
                 throw new Error("Impossible de synchroniser le nouvel état sur le serveur.");
             }
         } catch (err) {
-            // Rollback en cas de panne réseau ou de bug serveur
             alert(err.message);
             setProducts(prevProducts =>
                 prevProducts.map(prod =>
@@ -101,23 +97,23 @@ export default function Gest_produit() {
         }
     };
 
-    // ── GESTION DES ÉTATS VISUELS DE CHARGEMENT ──
+    // ── ÉTATS VISUELS DE CHARGEMENT & ERREUR ──
     if (loading) {
         return (
-            <div className="min-h-screen w-full flex items-center justify-center gap-2 text-gray-500">
+            <div className="min-h-screen w-full flex items-center justify-center gap-2 text-slate-400 bg-white font-sans">
                 <Loader2 className="animate-[spin_1.2s_linear_infinite] text-[#9ADE7B]" size={24} />
-                <span className="font-sans text-xs uppercase tracking-wider font-bold">Synchronisation du catalogue...</span>
+                <span className="text-xs uppercase tracking-[0.2em] font-bold">Synchronisation du catalogue...</span>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="min-h-screen w-full flex flex-col items-center justify-center gap-4 text-gray-800">
-                <p className="text-red-500 font-bold font-sans">Erreur Système : {error}</p>
+            <div className="min-h-screen w-full flex flex-col items-center justify-center gap-4 text-slate-900 bg-white font-sans">
+                <p className="text-rose-600 font-bold text-sm">Erreur Système : {error}</p>
                 <button 
                     onClick={() => window.location.reload()} 
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 transition-colors rounded-xl font-bold text-xs uppercase tracking-wider"
+                    className="px-5 py-3 bg-slate-900 hover:bg-black text-white transition-colors rounded-xl font-bold text-xs uppercase tracking-wider shadow-md border-none cursor-pointer"
                 >
                     Recharger la page
                 </button>
@@ -126,28 +122,32 @@ export default function Gest_produit() {
     }
 
     return (
-        <div className="min-h-screen bg-white font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] px-4 md:px-8 py-12 pb-20 w-full box-border flex flex-col gap-8">
+        <div className="min-h-screen bg-white font-sans px-4 md:px-8 py-12 pb-20 w-full box-border flex flex-col gap-8">
             
             {/* Titre principal de la page */}
             <header className="flex flex-col gap-1.5 w-full">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-gray-900 m-0">Gestion des Produits</h1>
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter text-slate-900 m-0">
+                    Gestion des Produits
+                </h1>
                 <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold tracking-widest uppercase text-[#9ADE7B]">VOLTA NETWORK SERVICE</span>
+                    <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-[#9ADE7B]">
+                        VOLTA NETWORK SERVICE
+                    </span>
                 </div>
             </header>
 
             {/* ── Entête & Filtres ── */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 w-full bg-white p-1 border-b border-gray-100 pb-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 w-full bg-white border-b border-slate-100 pb-6">
                 
                 {/* Onglets Filtres d'état */}
-                <div className="flex gap-1.5 bg-gray-50 p-1.5 rounded-xl border border-gray-100 w-full sm:w-auto">
+                <div className="flex gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-100 w-full sm:w-auto">
                     {["tous", "disponible", "indisponible"].map((etat) => (
                         <button 
                             key={etat}
                             className={`flex-1 sm:flex-none px-5 py-2 text-xs font-bold rounded-lg cursor-pointer transition-all border-none uppercase tracking-wider ${
                                 filtreEtat === etat 
-                                    ? "bg-gray-900 text-white shadow-sm" 
-                                    : "text-gray-500 hover:text-gray-900 bg-transparent"
+                                    ? "bg-slate-900 text-white shadow-sm" 
+                                    : "text-slate-600 hover:text-slate-900 bg-transparent"
                             }`}
                             onClick={() => handleFilterChange(etat)}
                         >
@@ -157,72 +157,72 @@ export default function Gest_produit() {
                 </div>
 
                 {/* Filtres par Date */}
-                <div className="flex flex-wrap gap-3 items-center font-sans text-xs text-gray-500 w-full sm:w-auto">
-                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
-                        <Calendar size={14} className="text-gray-400" />
-                        <span className="text-gray-400">Du :</span>
-                        <input type="date" className="bg-transparent text-gray-800 font-medium border-none outline-none cursor-pointer p-0 text-xs font-sans" />
+                <div className="flex flex-wrap gap-3 items-center text-xs text-slate-600 w-full sm:w-auto">
+                    <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
+                        <Calendar size={14} className="text-slate-400" />
+                        <span className="text-slate-400">Du :</span>
+                        <input type="date" className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" />
                     </div>
-                    <span className="hidden sm:inline font-medium text-gray-400">au</span>
-                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
-                        <Calendar size={14} className="text-gray-400" />
-                        <span className="text-gray-400">Au :</span>
-                        <input type="date" className="bg-transparent text-gray-800 font-medium border-none outline-none cursor-pointer p-0 text-xs font-sans" />
+                    <span className="hidden sm:inline font-bold text-slate-400 uppercase text-[10px] tracking-wider">au</span>
+                    <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
+                        <Calendar size={14} className="text-slate-400" />
+                        <span className="text-slate-400">Au :</span>
+                        <input type="date" className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" />
                     </div>
                 </div>
             </div>
 
             {/* ── Tableau des produits ── */}
-            <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xl flex flex-col w-full font-sans">
+            <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-xl flex flex-col w-full">
                 <div className="w-full overflow-x-auto">
                     <table className="w-full border-collapse text-left m-0">
                         <thead>
-                            <tr className="bg-gray-50 border-b border-gray-100">
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center w-[80px]">Aperçu</th>
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase">Désignation du produit</th>
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center w-[160px]">Catégorie</th>
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-right w-[160px]">Prix unitaire</th>
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center w-[130px]">État</th>
-                                <th className="p-4 text-[10px] font-bold tracking-wider text-gray-400 uppercase text-center w-[100px]">Actions</th>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center w-[80px]">Aperçu</th>
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase">Désignation du produit</th>
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center w-[160px]">Catégorie</th>
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase text-right w-[160px]">Prix unitaire</th>
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center w-[130px]">État</th>
+                                <th className="p-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase text-center w-[100px]">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-slate-100">
                             {currentItems.length > 0 ? (
                                 currentItems.map((produit) => {
                                     const isAvailable = Number(produit.est_disponible) === 1;
                                     
                                     return (
-                                        <tr key={produit.id_produit} className="hover:bg-gray-50/60 transition-colors group">
+                                        <tr key={produit.id_produit} className="hover:bg-slate-50/50 transition-colors group">
                                             <td className="p-4 text-center align-middle">
                                                 <img 
                                                     src={produit.url_image_principale || "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=150&auto=format&fit=crop&q=80"} 
                                                     alt={produit.nom_produit} 
                                                     onClick={() => detailProduit(produit.id_produit)}
-                                                    className="w-12 h-12 object-cover rounded-xl border border-gray-100 bg-gray-50 shadow-sm cursor-pointer transition-transform duration-200 hover:scale-105" 
+                                                    className="w-12 h-12 object-cover rounded-xl border border-slate-100 bg-slate-50 shadow-sm cursor-pointer transition-transform duration-200 hover:scale-105" 
                                                 />
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <div className="flex flex-col cursor-pointer" onClick={() => detailProduit(produit.id_produit)}>
-                                                    <h4 className="font-serif font-bold text-gray-900 text-sm m-0 group-hover:text-[#88cb6d] transition-colors">
+                                                    <h4 className="font-bold text-slate-900 text-sm m-0 group-hover:text-[#9ADE7B] transition-colors">
                                                         {produit.nom_produit}
                                                     </h4>
-                                                    <p className="text-xs text-gray-400 m-0 mt-0.5 font-sans font-medium line-clamp-1">
+                                                    <p className="text-xs text-slate-600 m-0 mt-0.5 line-clamp-1">
                                                         {produit.apropos || produit.description_produit || "Aucune description fournie"}
                                                     </p>
                                                 </div>
                                             </td>
                                             <td className="p-4 text-center align-middle">
-                                                <span className="inline-block bg-gray-100 text-gray-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg">
+                                                <span className="inline-block bg-slate-50 border border-slate-100 text-slate-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg">
                                                     {produit.sous_categorie?.nom_sous_categorie || "Général"}
                                                 </span>
                                             </td>
-                                            <td className="p-4 text-right align-middle text-gray-900 font-bold text-sm tracking-tight font-sans">
-                                                {Intl.NumberFormat('fr-FR').format(produit.prix_unitaire_produit || 0)} <span className="text-[10px] font-serif font-medium text-gray-400 ml-0.5">FCFA</span>
+                                            <td className="p-4 text-right align-middle text-slate-900 font-bold text-sm tracking-tight">
+                                                {Intl.NumberFormat('fr-FR').format(produit.prix_unitaire_produit || 0)} <span className="text-[10px] font-medium text-slate-400 ml-0.5">FCFA</span>
                                             </td>
                                             <td className="p-4 text-center align-middle">
                                                 <span className={`inline-block px-2.5 py-1 text-[10px] font-bold tracking-wider uppercase rounded-xl w-[105px] text-center ${
                                                     isAvailable 
-                                                        ? "bg-emerald-50 text-emerald-700" 
+                                                        ? "bg-[#9ADE7B]/20 text-slate-900" 
                                                         : "bg-rose-50 text-rose-600"
                                                 }`}>
                                                     {isAvailable ? "Disponible" : "Indisponible"}
@@ -231,7 +231,7 @@ export default function Gest_produit() {
                                             <td className="p-4 text-center align-middle">
                                                 <button 
                                                     className={`p-1 bg-transparent border-none cursor-pointer transition-all active:scale-90 inline-flex items-center justify-center ${
-                                                        isAvailable ? "text-[#9ADE7B]" : "text-gray-300"
+                                                        isAvailable ? "text-[#9ADE7B]" : "text-slate-300 hover:text-slate-400"
                                                     }`}
                                                     onClick={() => statut_produit(produit.id_produit, produit.est_disponible)}
                                                     title={isAvailable ? "Désactiver le produit" : "Activer le produit"}
@@ -248,7 +248,7 @@ export default function Gest_produit() {
                                 })
                             ) : (
                                 <tr>
-                                    <td colSpan="6" className="p-12 text-center text-sm font-medium text-gray-400">
+                                    <td colSpan="6" className="p-12 text-center text-sm font-medium text-slate-400">
                                         Aucun produit trouvé dans cette sélection
                                     </td>
                                 </tr>
@@ -260,11 +260,11 @@ export default function Gest_produit() {
 
             {/* ── Structure de Pagination ── */}
             {totalPages > 1 && (
-                <div className="flex justify-end items-center gap-1.5 mt-2 font-sans">
+                <div className="flex justify-end items-center gap-1.5 mt-2">
                     <button
                         disabled={currentPage === 1}
                         onClick={() => setCurrentPage(currentPage - 1)}
-                        className="p-2 cursor-pointer rounded-xl border border-gray-100 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm text-gray-600 flex items-center justify-center"
+                        className="p-2 cursor-pointer rounded-xl border border-slate-100 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm text-slate-600 flex items-center justify-center"
                     >
                         <ChevronLeft size={16} />
                     </button>
@@ -275,8 +275,8 @@ export default function Gest_produit() {
                             onClick={() => setCurrentPage(page)}
                             className={`w-9 h-9 cursor-pointer rounded-xl text-xs font-bold transition-all duration-200 ${
                                 currentPage === page 
-                                    ? "bg-gray-900 text-white shadow-md border-none" 
-                                    : "bg-white border border-gray-100 text-gray-500 hover:bg-gray-50 shadow-sm"
+                                    ? "bg-slate-900 text-white shadow-lg border-none font-extrabold" 
+                                    : "bg-white border border-slate-100 text-slate-400 hover:bg-slate-50 shadow-sm"
                             }`}
                         >
                             {page}
@@ -286,7 +286,7 @@ export default function Gest_produit() {
                     <button
                         disabled={currentPage === totalPages || totalPages === 0}
                         onClick={() => setCurrentPage(currentPage + 1)}
-                        className="p-2 cursor-pointer rounded-xl border border-gray-100 bg-white hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm text-gray-600 flex items-center justify-center"
+                        className="p-2 cursor-pointer rounded-xl border border-slate-100 bg-white hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shadow-sm text-slate-600 flex items-center justify-center"
                     >
                         <ChevronRight size={16} />
                     </button>

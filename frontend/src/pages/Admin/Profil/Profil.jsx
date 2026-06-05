@@ -114,16 +114,16 @@ export default function Profil() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] py-4 w-full box-border flex flex-col gap-8">
+    <div className="min-h-screen bg-white font-sans py-4 w-full box-border flex flex-col gap-8">
       
       <header className="flex flex-col gap-1 w-full">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-gray-900 m-0">Mon Profil</h1>
-        <p className="text-xs font-medium text-gray-400 font-sans m-0">Consultez et gérez vos informations personnelles</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tighter text-slate-900 m-0">Mon Profil</h1>
+        <p className="text-xs font-medium text-slate-400 m-0">Consultez et gérez vos informations personnelles</p>
       </header>
 
       {/* Affichage des notifications */}
       {message.text && (
-        <div className={`p-4 rounded-xl text-xs font-sans font-bold ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-rose-50 text-rose-700'}`}>
+        <div className={`p-4 rounded-xl text-xs font-bold tracking-wide ${message.type === 'success' ? 'bg-[#9ADE7B]/20 text-slate-900' : 'bg-rose-50 text-rose-700'}`}>
           {message.text}
         </div>
       )}
@@ -131,17 +131,17 @@ export default function Profil() {
       <div className="flex flex-col lg:flex-row gap-10 w-full items-start">
         
         {/* Navigation gauche */}
-        <div className="w-full lg:w-[280px] bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-col font-sans box-border">
-          <div className="flex w-full gap-3 items-center pb-4 border-b border-gray-50">
+        <div className="w-full lg:w-[280px] bg-white border border-slate-100 rounded-2xl p-4 shadow-sm flex flex-col box-border">
+          <div className="flex w-full gap-3 items-center pb-4 border-b border-slate-50">
             <div 
               style={{ backgroundColor: Couleur_Nom_Icon(premiereLettre) }}
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-800 font-bold text-sm border border-gray-100/50 uppercase"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-800 font-bold text-sm border border-slate-100/50 uppercase"
             >
               {premiereLettre}
             </div>
             <div className="flex flex-col">
-              <span className="text-xs font-bold text-gray-900 m-0 leading-tight">{user.nom_complet}</span>
-              <span className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mt-0.5">Paramètres généraux</span>
+              <span className="text-xs font-bold text-slate-900 m-0 leading-tight">{user.nom_complet}</span>
+              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-[0.2em] mt-0.5">Paramètres généraux</span>
             </div>
           </div>
 
@@ -149,33 +149,33 @@ export default function Profil() {
             <button 
               className={`flex items-center gap-3 text-xs p-3 w-full rounded-xl transition-all duration-200 border-none cursor-pointer font-bold tracking-wide text-left ${
                 paramProfil === "personnelle" 
-                  ? "bg-gray-900 text-white shadow-sm" 
-                  : "bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-slate-900 text-white shadow-sm" 
+                  : "bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               }`}
               onClick={() => { setParamProfil('personnelle'); setMessage({type:'',text:''}); }}
             >
               <UserCog size={16} /> 
-              <span>INFOS PERSONNELLES</span>
+              <span className="tracking-[0.15em]">INFOS PERSONNELLES</span>
             </button>
             
             <button 
               className={`flex items-center gap-3 text-xs p-3 w-full rounded-xl transition-all duration-200 border-none cursor-pointer font-bold tracking-wide text-left ${
                 paramProfil === "modifier_pass" 
-                  ? "bg-gray-900 text-white shadow-sm" 
-                  : "bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-50"
+                  ? "bg-slate-900 text-white shadow-sm" 
+                  : "bg-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-50"
               }`}
               onClick={() => { setParamProfil('modifier_pass'); setMessage({type:'',text:''}); }}
             >
               <KeyIcon size={16} /> 
-              <span>MOT DE PASSE</span>
+              <span className="tracking-[0.15em]">MOT DE PASSE</span>
             </button>
             
             <button 
               onClick={handleLogout}
-              className="flex items-center gap-3 text-xs p-3 w-full rounded-xl transition-all duration-200 border-none cursor-pointer font-bold tracking-wide text-left bg-transparent text-gray-400 hover:text-rose-600 hover:bg-rose-50/40 mt-4"
+              className="flex items-center gap-3 text-xs p-3 w-full rounded-xl transition-all duration-200 border-none cursor-pointer font-bold tracking-wide text-left bg-transparent text-slate-400 hover:text-rose-600 hover:bg-rose-50/40 mt-4"
             >
               <LogOut size={16} /> 
-              <span>DÉCONNEXION</span>
+              <span className="tracking-[0.15em]">DÉCONNEXION</span>
             </button>
           </div>
         </div>
@@ -184,28 +184,28 @@ export default function Profil() {
         {paramProfil === 'personnelle' && (
           <div className="flex-1 w-full flex flex-col gap-6">
             <div className="flex items-center gap-4 w-full">
-              <h3 className="text-xs font-bold tracking-widest uppercase text-gray-900 m-0 font-sans">
+              <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-slate-900 m-0">
                 Informations personnelles
               </h3>
-              <div className="flex-1 h-[1px] bg-gray-100" />
+              <div className="flex-1 h-[1px] bg-slate-100" />
             </div>
             
-            <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col gap-6 font-sans">
+            <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col gap-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Nom complet</span>
-                  <span className="text-sm font-bold text-gray-800 font-serif">{user.nom_complet}</span> 
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Nom complet</span>
+                  <span className="text-sm font-bold text-slate-800">{user.nom_complet}</span> 
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Adresse email</span>
-                  <span className="text-sm font-bold text-gray-800">{user.email}</span>
+                  <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Adresse email</span>
+                  <span className="text-sm font-bold text-slate-800">{user.email}</span>
                 </div>
               </div>
 
-              <div className="flex justify-end border-t border-gray-50 pt-4 mt-2">
+              <div className="flex justify-end border-t border-slate-50 pt-4 mt-2">
                 <button 
                   onClick={() => { setNouveauNom(user.nom_complet); setIsModalOpen(true); }}
-                  className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-white bg-gray-900 hover:bg-gray-800 px-5 py-2.5 rounded-xl cursor-pointer transition-all border-none shadow-sm"
+                  className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase text-white bg-slate-900 hover:bg-black px-5 py-2.5 rounded-xl cursor-pointer transition-all border-none shadow-md"
                 >
                   <PencilLine size={14} /> Modifier
                 </button>
@@ -216,21 +216,21 @@ export default function Profil() {
 
         {/* Panneau de droite : Modifier Mot de Passe */}
         {paramProfil === 'modifier_pass' && (
-          <form onSubmit={handleUpdatePassword} className="flex-1 w-full flex flex-col gap-6 font-sans">
+          <form onSubmit={handleUpdatePassword} className="flex-1 w-full flex flex-col gap-6">
             <div className="flex items-center gap-4 w-full">
-              <h3 className="text-xs font-bold tracking-widest uppercase text-gray-900 m-0">
+              <h3 className="text-xs font-bold tracking-[0.3em] uppercase text-slate-900 m-0">
                 Sécurité du compte
               </h3>
-              <div className="flex-1 h-[1px] bg-gray-100" /> 
+              <div className="flex-1 h-[1px] bg-slate-100" /> 
             </div>
             
-            <div className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col gap-5 max-w-xl w-full box-border">
+            <div className="p-6 bg-white border border-slate-100 rounded-2xl shadow-sm flex flex-col gap-5 max-w-xl w-full box-border">
               <div className="flex flex-col gap-2">
-                <label className="flex items-center justify-between text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                <label className="flex items-center justify-between text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
                   <span>Mot de passe actuel</span> 
                   <button 
                     type="button"
-                    className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-0 uppercase tracking-wider" 
+                    className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer p-0 uppercase tracking-wider" 
                     onClick={() => setEye(!eye)}
                   >
                     {eye ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -242,16 +242,16 @@ export default function Profil() {
                   required
                   value={passwordForm.current_password}
                   onChange={(e) => setPasswordForm({...passwordForm, current_password: e.target.value})}
-                  className="w-full box-border p-3 text-sm bg-gray-50 rounded-xl border border-transparent focus:outline-none focus:border-gray-200 focus:bg-white transition-all text-gray-800 font-mono tracking-widest"
+                  className="w-full box-border p-3 text-sm bg-slate-50 rounded-xl border border-transparent focus:outline-none focus:border-slate-200 focus:bg-white transition-all text-slate-800 font-mono tracking-widest"
                 />
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="flex items-center justify-between text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                <label className="flex items-center justify-between text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">
                   <span>Nouveau mot de passe</span>
                   <button 
                     type="button"
-                    className="flex items-center gap-1 text-[10px] font-bold text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-0 uppercase tracking-wider" 
+                    className="flex items-center gap-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer p-0 uppercase tracking-wider" 
                     onClick={() => setEyeNew(!eyeNew)}
                   >
                     {eyeNew ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -263,28 +263,28 @@ export default function Profil() {
                   required
                   value={passwordForm.new_password}
                   onChange={(e) => setPasswordForm({...passwordForm, new_password: e.target.value})}
-                  className="w-full box-border p-3 text-sm bg-gray-50 rounded-xl border border-transparent focus:outline-none focus:border-gray-200 focus:bg-white transition-all text-gray-800 font-mono tracking-widest"
+                  className="w-full box-border p-3 text-sm bg-slate-50 rounded-xl border border-transparent focus:outline-none focus:border-slate-200 focus:bg-white transition-all text-slate-800 font-mono tracking-widest"
                 />
               </div>
               
               <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Confirmation du mot de passe</label>
+                <label className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Confirmation du mot de passe</label>
                 <input 
                   type={eyeNew ? 'text' : 'password'} 
                   required
                   value={passwordForm.new_password_confirmation}
                   onChange={(e) => setPasswordForm({...passwordForm, new_password_confirmation: e.target.value})}
-                  className="w-full box-border p-3 text-sm bg-gray-50 rounded-xl border border-transparent focus:outline-none focus:border-gray-200 focus:bg-white transition-all text-gray-800 font-mono tracking-widest"
+                  className="w-full box-border p-3 text-sm bg-slate-50 rounded-xl border border-transparent focus:outline-none focus:border-slate-200 focus:bg-white transition-all text-slate-800 font-mono tracking-widest"
                 />
               </div>
               
-              <div className="flex justify-start border-t border-gray-50 pt-4 mt-2">
+              <div className="flex justify-start border-t border-slate-50 pt-4 mt-2">
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase bg-gray-900 hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl cursor-pointer border-none shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-2 text-xs font-bold tracking-wider uppercase bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl cursor-pointer border-none shadow-md transition-all disabled:opacity-50"
                 >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />} 
+                  {loading ? <Loader2 size={16} className="animate-spin text-[#9ADE7B]" /> : <ShieldCheck size={16} />} 
                   Mettre à jour
                 </button>
               </div>
@@ -295,46 +295,46 @@ export default function Profil() {
 
       {/* --- POP-UP MODALE : MODIFICATION DU NOM --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 box-border font-sans">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl border border-gray-100 flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 box-border">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col gap-4 relative animate-in fade-in zoom-in-95 duration-200">
             <button 
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 bg-transparent border-none cursor-pointer"
             >
               <X size={18} />
             </button>
             
             <div className="flex flex-col gap-1">
-              <h4 className="text-sm font-bold text-gray-900 m-0">Modifier mon nom</h4>
-              <p className="text-[11px] text-gray-400 m-0">Ce nom sera affiché sur votre interface et vos factures.</p>
+              <h4 className="text-sm font-bold text-slate-900 m-0">Modifier mon nom</h4>
+              <p className="text-[11px] text-slate-400 m-0">Ce nom sera affiché sur votre interface et vos factures.</p>
             </div>
 
             <form onSubmit={handleUpdateName} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">Nouveau nom complet</label>
+                <label className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase">Nouveau nom complet</label>
                 <input 
                   type="text"
                   required
                   value={nouveauNom}
                   onChange={(e) => setNouveauNom(e.target.value)}
-                  className="w-full box-border p-3 text-sm bg-gray-50 rounded-xl border border-transparent focus:outline-none focus:border-gray-200 focus:bg-white transition-all text-gray-800 font-medium"
+                  className="w-full box-border p-3 text-sm bg-slate-50 rounded-xl border border-transparent focus:outline-none focus:border-slate-200 focus:bg-white transition-all text-slate-800 font-medium"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-gray-50">
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-50">
                 <button 
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="text-xs font-bold tracking-wider uppercase text-gray-500 bg-transparent hover:bg-gray-50 px-4 py-2.5 rounded-xl cursor-pointer border-none transition-all"
+                  className="text-xs font-bold tracking-wider uppercase text-slate-500 bg-transparent hover:bg-slate-50 px-4 py-2.5 rounded-xl cursor-pointer border-none transition-all"
                 >
                   Annuler
                 </button>
                 <button 
                   type="submit"
                   disabled={loading}
-                  className="flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase text-white bg-gray-900 hover:bg-gray-800 px-4 py-2.5 rounded-xl cursor-pointer border-none shadow-sm transition-all disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-xs font-bold tracking-wider uppercase text-white bg-slate-900 hover:bg-black px-4 py-2.5 rounded-xl cursor-pointer border-none shadow-md transition-all disabled:opacity-50"
                 >
-                  {loading && <Loader2 size={12} className="animate-spin" />}
+                  {loading && <Loader2 size={12} className="animate-spin text-[#9ADE7B]" />}
                   Enregistrer
                 </button>
               </div>
@@ -343,9 +343,9 @@ export default function Profil() {
         </div>
       )}
 
-      <footer className="flex w-full mt-auto pt-8 border-t border-gray-50 gap-2 items-center justify-end font-sans">
-        <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-        <p className="text-[10px] tracking-wider uppercase font-bold text-gray-400 m-0">Session sécurisée par VOLTA NETWORK SERVICES</p>
+      <footer className="flex w-full mt-auto pt-8 border-t border-slate-50 gap-2 items-center justify-end">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+        <p className="text-[10px] tracking-[0.2em] uppercase font-bold text-slate-400 m-0">Session sécurisée par VOLTA NETWORK SERVICES</p>
       </footer>
     </div>
   );

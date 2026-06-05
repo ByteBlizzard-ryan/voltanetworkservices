@@ -53,19 +53,19 @@ function Recap_tete({ stats }) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-8">
             {cards.map((card, idx) => (
-                <section key={idx} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                <section key={idx} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg hover:border-[#9ADE7B]/40 transition-all duration-300 flex flex-col justify-between">
                     <div className="flex items-center justify-between">
-                        <span className="text-[#1A4301] bg-[#9ADE7B]/20 p-2.5 rounded-xl">
+                        <span className="text-slate-900 bg-[#9ADE7B] p-2.5 rounded-xl">
                             {card.icon}
                         </span>
-                        <div className="flex items-center gap-0.5 text-[#9ADE7B] font-bold bg-[#9ADE7B]/10 px-2 py-0.5 rounded-lg">
+                        <div className="flex items-center gap-0.5 text-[#9ADE7B] font-bold bg-[#9ADE7B]/20 px-2 py-0.5 rounded-lg">
                             <ArrowUpRight size={16} />
-                            <p className="text-xs font-mono">{card.taux}</p>
+                            <p className="text-xs font-sans font-bold">{card.taux}</p>
                         </div>
                     </div>
                     <div className="mt-5">
-                        <p className="text-xs font-bold uppercase tracking-widest text-gray-400">{card.title}</p>
-                        <h1 className="text-2xl font-black text-gray-900 tracking-tight mt-1">{card.value}</h1>
+                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">{card.title}</p>
+                        <h3 className="text-2xl font-extrabold text-slate-900 leading-tight mt-1">{card.value}</h3>
                     </div>
                 </section>
             ))}
@@ -76,7 +76,8 @@ function Recap_tete({ stats }) {
 // ==========================================
 // 3. GRAPHIQUE CIRCULAIRE
 // ==========================================
-const COLORS = ["#9ADE7B", "#1A4301", "#64B5F6", "#FFB74D", "#BA68C8", "#EF9A9A"];
+// Adaptation des couleurs de graphiques pour coller au thème (Vert clair de marque, ardoise foncé, etc.)
+const COLORS = ["#9ADE7B", "#0f172a", "#475569", "#94a3b8", "#cbd5e1", "#e2e8f0"];
 
 function JaugeProduits({ data = [] }) {
     return (
@@ -98,8 +99,8 @@ function JaugeProduits({ data = [] }) {
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3f4f6' }} />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f1f5f9', fontFamily: 'sans-serif' }} />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', fontFamily: 'sans-serif' }} />
                 </PieChart>
             </ResponsiveContainer>
         </div>
@@ -150,10 +151,10 @@ function CourbeVentes({ data = [], filtre = "jour" }) {
                             <stop offset="95%" stopColor="#9ADE7B" stopOpacity={0.0}/>
                         </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                    <XAxis dataKey="label" stroke="#9ca3af" style={{ fontSize: '11px' }} tickLine={false} />
-                    <YAxis stroke="#9ca3af" style={{ fontSize: '11px' }} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f3f4f6' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="label" stroke="#94a3b8" style={{ fontSize: '11px', fontFamily: 'sans-serif' }} tickLine={false} />
+                    <YAxis stroke="#94a3b8" style={{ fontSize: '11px', fontFamily: 'sans-serif' }} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #f1f5f9', fontFamily: 'sans-serif' }} />
                     <Area type="monotone" dataKey="ventes" stroke="#9ADE7B" fillOpacity={1} fill="url(#colorVentes)" strokeWidth={3} />
                 </AreaChart>
             </ResponsiveContainer>
@@ -169,13 +170,13 @@ function Graphe({ transactions, categories }) {
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 px-4 md:px-8 w-full">
-            <div className="flex-1 border border-gray-50 rounded-2xl bg-white p-6 shadow-sm">
+            <div className="flex-1 border border-slate-100 rounded-2xl bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h2 className="text-xl font-bold tracking-tight text-gray-900">Évolution des ventes</h2>
-                        <p className="text-xs text-gray-400 mt-0.5">Suivi en temps réel des transactions</p>
+                        <h3 className="text-xl font-bold text-slate-900">Évolution des ventes</h3>
+                        <p className="text-xs text-slate-400 mt-0.5">Suivi en temps réel des transactions</p>
                     </div>
-                    <label className="px-2.5 py-1 rounded-md bg-[#9ADE7B]/20 text-[#1A4301] text-xs font-bold uppercase tracking-wider animate-pulse">
+                    <label className="px-4 py-2 rounded-full bg-[#9ADE7B]/20 text-slate-900 text-xs font-bold uppercase tracking-[0.2em] animate-pulse">
                         Direct Live
                     </label>
                 </div>
@@ -186,8 +187,8 @@ function Graphe({ transactions, categories }) {
                             key={type}
                             className={`px-4 py-2 text-xs font-bold border-none cursor-pointer rounded-xl transition-all duration-300 whitespace-nowrap shadow-sm ${
                                 filtre === type 
-                                ? "bg-[#9ADE7B] text-gray-900" 
-                                : "bg-gray-50 text-gray-400 hover:bg-gray-100"
+                                ? "bg-[#9ADE7B] text-slate-900" 
+                                : "bg-slate-50 text-slate-400 hover:bg-slate-100"
                             }`}
                             onClick={() => setFiltre(type)}
                         >
@@ -198,10 +199,10 @@ function Graphe({ transactions, categories }) {
                 <CourbeVentes data={transactions} filtre={filtre} />
             </div>
 
-            <div className="w-full lg:w-[340px] border border-gray-50 rounded-2xl bg-white p-6 shadow-sm flex flex-col justify-between">
+            <div className="w-full lg:w-[340px] border border-slate-100 rounded-2xl bg-white p-6 shadow-sm flex flex-col justify-between">
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-gray-900">Top Ventes</h2>
-                    <p className="text-xs text-gray-400 mt-0.5">Distribution des volumes par article</p>
+                    <h3 className="text-xl font-bold text-slate-900">Top Ventes</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Distribution des volumes par article</p>
                 </div>
                 <div className="mt-4 flex items-center justify-center">
                     <JaugeProduits data={categories} />
@@ -217,22 +218,22 @@ function Graphe({ transactions, categories }) {
 function Table_commande({ commandes }) {
     return (
         <div className="p-5 px-4 md:px-8">
-            <div className="w-full bg-white border border-gray-50 shadow-sm rounded-2xl p-6">
+            <div className="w-full bg-white border border-slate-100 shadow-sm rounded-2xl p-6">
                 <div className="mb-6">
-                    <h2 className="text-xl font-bold text-gray-900 tracking-tight">Dernières Commandes</h2>
-                    <p className="text-xs text-gray-400 mt-0.5">Liste complète des activités récentes des clients</p>
+                    <h3 className="text-xl font-bold text-slate-900">Dernières Commandes</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Liste complète des activités récentes des clients</p>
                 </div>
                 <div className="w-full overflow-x-auto">
                     <table className="w-full border-collapse">
                         <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Client</th>
-                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Date</th>
-                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Montant</th>
-                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Statut</th>
+                            <tr className="border-b border-slate-100">
+                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Client</th>
+                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Date</th>
+                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Montant</th>
+                                <th className="pb-4 text-left text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Statut</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-50">
+                        <tbody className="divide-y divide-slate-50">
                             {commandes.map((order) => (
                                 <tr key={order.id} className="hover:bg-[#9ADE7B]/5 transition-colors duration-200 cursor-pointer group">
                                     <td className="py-4 text-left">
@@ -244,16 +245,16 @@ function Table_commande({ commandes }) {
                                                 {order.client?.charAt(0).toUpperCase() || ""}
                                             </label>
                                             <div className="flex flex-col">
-                                                <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#1A4301] transition-colors">{order.client}</h3>
-                                                <p className="text-gray-400 text-xs font-mono">{order.email}</p>
+                                                <h4 className="font-bold text-sm text-slate-900 group-hover:text-[#9ADE7B] transition-colors">{order.client}</h4>
+                                                <p className="text-slate-400 text-xs font-sans">{order.email}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="py-4 text-left text-sm text-gray-500 font-mono">{order.date}</td>
-                                    <td className="py-4 text-left text-sm font-black text-gray-900">{Number(order.montant).toLocaleString()} FCFA</td>
+                                    <td className="py-4 text-left text-sm text-slate-600 font-sans">{order.date}</td>
+                                    <td className="py-4 text-left text-sm font-extrabold text-slate-900">{Number(order.montant).toLocaleString()} FCFA</td>
                                     <td className="py-4 text-left">
                                         <label 
-                                            className="px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wide inline-block"
+                                            className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide inline-block"
                                             style={{ 
                                                 backgroundColor: Etat_commande(order.statut), 
                                                 color: Text_Etat_commande(order.statut) 
@@ -266,7 +267,7 @@ function Table_commande({ commandes }) {
                             ))}
                             {commandes.length === 0 && (
                                 <tr>
-                                    <td colSpan="4" className="py-6 text-center text-sm text-gray-400">Aucune transaction enregistrée.</td>
+                                    <td colSpan="4" className="py-6 text-center text-sm text-slate-400">Aucune transaction enregistrée.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -286,7 +287,6 @@ export default function Dashboard() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        // Remplace par l'URL de ton serveur de développement ou de production si nécessaire
         fetch("http://localhost:8000/api/admin/dashboard-stats")
             .then((res) => {
                 if (!res.ok) throw new Error("Erreur de communication avec l'API Laravel.");
@@ -304,30 +304,33 @@ export default function Dashboard() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-3">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-3 font-sans">
                 <Loader2 className="w-9 h-9 animate-spin text-[#9ADE7B]" />
-                <p className="text-xs font-bold text-gray-400 tracking-widest uppercase">Calcul des indicateurs en cours...</p>
+                <p className="text-xs font-bold text-slate-400 tracking-[0.3em] uppercase">Calcul des indicateurs en cours...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-3 text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white gap-3 text-center px-4 font-sans">
                 <span className="text-red-500 text-3xl font-bold">⚠️</span>
-                <h3 className="text-lg font-bold text-gray-900">Échec du chargement de la console</h3>
-                <p className="text-xs text-gray-400 max-w-xs">{error}</p>
+                <h3 className="text-lg font-extrabold text-slate-900">Échec du chargement de la console</h3>
+                <p className="text-xs text-slate-400 max-w-xs">{error}</p>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif]">
+        <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-sans text-slate-900 overflow-x-hidden">
             <div className="px-4 md:px-8 mb-4">
-                <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-gray-900">
+                <span className="inline-block bg-[#9ADE7B]/20 text-slate-900 text-xs font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full mb-3">
+                    Espace Administrateur
+                </span>
+                <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight text-slate-900">
                     Console de <span className="text-[#9ADE7B]">Supervision</span>
                 </h1>
-                <p className="text-gray-400 text-sm mt-1">Espace d'analyse commerciale Volta Network Services</p>
+                <p className="text-slate-600 text-sm mt-1">Espace d'analyse commerciale Volta Network Services</p>
             </div>
             
             <Recap_tete stats={dashboardData?.stats} />

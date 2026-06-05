@@ -109,7 +109,7 @@ export default function Home() {
           >
             <motion.span
               variants={fadeInUp}
-              className="inline-block bg-[#1B4332]/30 text-[#A7C957] text-xs font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full"
+              className="inline-block bg-[#9ADE7B]/20 text-[#9ADE7B] text-xs font-bold uppercase tracking-[0.2em] px-4 py-2 rounded-full"
             >
               Sécurité & Surveillance
             </motion.span>
@@ -117,7 +117,7 @@ export default function Home() {
               variants={fadeInUp}
               className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight"
             >
-              Protégez vos <span className="text-[#D4AF37]">actifs</span> avec une sécurité
+              Protégez vos <span className="text-[#9ADE7B]">actifs</span> avec une sécurité
               infaillible.
             </motion.h1>
             <motion.p
@@ -130,7 +130,7 @@ export default function Home() {
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
               <Link
                 to="/services"
-                className="inline-flex items-center justify-center bg-[#1B4332] hover:bg-[#143728] text-white font-semibold px-8 py-4 rounded-lg shadow-xl transition-colors gap-2"
+                className="inline-flex items-center justify-center bg-[#9ADE7B] hover:bg-white text-slate-900 font-bold px-8 py-4 rounded-lg shadow-xl transition-all gap-2"
               >
                 Découvrir nos offres <ArrowRight className="w-5 h-5" />
               </Link>
@@ -149,7 +149,7 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="absolute -inset-4 bg-gradient-to-tr from-[#1B4332]/20 to-[#D4AF37]/10 rounded-3xl blur-2xl"></div>
+            <div className="absolute -inset-4 bg-gradient-to-tr from-[#9ADE7B]/20 to-transparent rounded-3xl blur-2xl"></div>
             <img
               src={imageAcceuil1}
               alt="Sécurité avancée"
@@ -161,7 +161,7 @@ export default function Home() {
               transition={{ duration: 3, repeat: Infinity }}
               className="absolute -bottom-6 -left-6 z-20 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-lg hidden lg:flex items-center gap-3"
             >
-              <div className="p-2 bg-[#1B4332] rounded-lg text-white">
+              <div className="p-2 bg-[#9ADE7B] rounded-lg text-slate-900">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
@@ -184,7 +184,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <span className="text-[#1B4332] font-bold text-xs uppercase tracking-[0.3em]">
+            <span className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]">
               Pourquoi nous choisir
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4">
@@ -219,9 +219,9 @@ export default function Home() {
               <motion.div
                 key={i}
                 variants={fadeInUp}
-                className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:shadow-lg hover:border-[#1B4332]/20 transition-all duration-300"
+                className="bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:shadow-lg hover:border-[#9ADE7B]/40 transition-all duration-300"
               >
-                <div className="text-[#1B4332] mb-4">{item.icon}</div>
+                <div className="text-[#9ADE7B] mb-4">{item.icon}</div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
                 <p className="text-slate-600">{item.desc}</p>
               </motion.div>
@@ -230,7 +230,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== SOLUTIONS (anciennes catégories) ========== */}
+      {/* ========== SOLUTIONS ========== */}
       <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -240,7 +240,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <span className="text-[#1B4332] font-bold text-xs uppercase tracking-[0.3em]">
+            <span className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]">
               Nos domaines d'expertise
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4">
@@ -254,19 +254,19 @@ export default function Home() {
                 icon: <Shield className="w-10 h-10" />,
                 title: 'Sécurité physique',
                 desc: 'Contrôle d’accès, vidéosurveillance, détection intrusion, gardiennage.',
-                color: 'border-l-[#1B4332]',
+                color: 'border-l-[#9ADE7B]',
               },
               {
                 icon: <Server className="w-10 h-10" />,
                 title: 'Cyber-défense',
                 desc: 'Protection des réseaux, audits de vulnérabilités, réponse aux incidents.',
-                color: 'border-l-[#D4AF37]',
+                color: 'border-l-slate-800',
               },
               {
                 icon: <Wifi className="w-10 h-10" />,
                 title: 'Objets connectés (IoT)',
                 desc: 'Sécurisation des infrastructures connectées, capteurs intelligents.',
-                color: 'border-l-[#2B4C7E]',
+                color: 'border-l-slate-400',
               },
             ].map((item, i) => (
               <motion.div
@@ -275,14 +275,14 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={`bg-white p-8 rounded-2xl shadow-sm border-l-4 ${item.color} hover:shadow-md transition-shadow`}
+                className={`bg-white p-8 rounded-2xl shadow-sm border-l-4 ${item.color} hover:shadow-md transition-all`}
               >
-                <div className="text-[#1B4332] mb-4">{item.icon}</div>
+                <div className="text-[#9ADE7B] mb-4">{item.icon}</div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
                 <p className="text-slate-600">{item.desc}</p>
                 <Link
                   to="/services"
-                  className="inline-flex items-center text-[#1B4332] font-semibold mt-6 hover:underline gap-1"
+                  className="inline-flex items-center text-slate-900 font-bold mt-6 hover:text-[#9ADE7B] transition-colors gap-1"
                 >
                   En savoir plus <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -302,7 +302,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <span className="text-[#1B4332] font-bold text-xs uppercase tracking-[0.3em]">
+            <span className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]">
               Équipements recommandés
             </span>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4">
@@ -318,7 +318,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Link
               to="/boutique"
-              className="inline-flex items-center bg-[#1B4332] text-white font-semibold px-8 py-4 rounded-lg hover:bg-[#143728] transition-colors gap-2 shadow-lg"
+              className="inline-flex items-center bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] font-bold px-8 py-4 rounded-lg transition-all gap-2 shadow-lg"
             >
               Voir tous les produits <ShoppingCart className="w-5 h-5" />
             </Link>
@@ -326,90 +326,85 @@ export default function Home() {
         </div>
       </section>
 
-    {/* ========== NOTRE PROCESSUS ========== */}
-    <section className="py-24 bg-white">
-      <div className="max-w-7xl mx-auto px-4">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          variants={staggerContainer}
-          className="text-center mb-16"
-        >
-          <motion.span
-            variants={fadeInUp}
-            className="text-[#1B4332] font-bold text-xs uppercase tracking-[0.3em]"
+      {/* ========== NOTRE PROCESSUS ========== */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={staggerContainer}
+            className="text-center mb-16"
           >
-            Méthodologie
-          </motion.span>
-          <motion.h2
-            variants={fadeInUp}
-            className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4"
-          >
-            Une approche structurée en 3 étapes
-          </motion.h2>
-        </motion.div>
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-100px' }}
-          variants={staggerContainer}
-          className="grid md:grid-cols-3 gap-8"
-        >
-          {[
-            {
-              step: '01',
-              icon: <MessageSquare className="w-10 h-10" />,
-              title: 'Audit & Conseil',
-              desc: 'Analyse complète de vos risques, visite de site et identification des vulnérabilités.',
-              highlight: 'Rapport sous 48h',
-            },
-            {
-              step: '02',
-              icon: <Server className="w-10 h-10" />,
-              title: 'Déploiement',
-              desc: 'Installation par nos équipes certifiées, configuration sur mesure et tests de résilience.',
-              highlight: 'Techniciens habilités',
-            },
-            {
-              step: '03',
-              icon: <Shield className="w-10 h-10" />,
-              title: 'Supervision 24/7',
-              desc: 'Surveillance continue, maintenance proactive et rapports mensuels personnalisés.',
-              highlight: 'Télésurveillance certifiée',
-            },
-          ].map((item, idx) => (
-            <motion.div
-              key={idx}
+            <motion.span
               variants={fadeInUp}
-              className="relative bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:shadow-lg hover:border-[#D4AF37]/30 transition-all duration-300 group overflow-hidden"
+              className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]"
             >
-              {/* Numéro d’étape en filigrane */}
-              <span className="absolute top-4 right-6 text-8xl font-black text-slate-200/60 select-none group-hover:text-[#A7C957]/10 transition-colors duration-500">
-                {item.step}
-              </span>
-              {/* Icône */}
-              <div className="text-[#D4AF37] mb-5 relative z-10 group-hover:scale-110 transition-transform duration-300">
-                {item.icon}
-              </div>
-              {/* Titre */}
-              <h3 className="text-xl font-bold text-slate-900 mb-3 relative z-10">
-                {item.title}
-              </h3>
-              {/* Description */}
-              <p className="text-slate-600 leading-relaxed mb-6 relative z-10">
-                {item.desc}
-              </p>
-              {/* Badge */}
-              <span className="inline-block bg-[#D4AF37]/10 text-[#D4AF37] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full relative z-10">
-                {item.highlight}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
-      </div>
-    </section>
+              Méthodologie
+            </motion.span>
+            <motion.h2
+              variants={fadeInUp}
+              className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4"
+            >
+              Une approche structurée en 3 étapes
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: '-100px' }}
+            variants={staggerContainer}
+            className="grid md:grid-cols-3 gap-8"
+          >
+            {[
+              {
+                step: '01',
+                icon: <MessageSquare className="w-10 h-10" />,
+                title: 'Audit & Conseil',
+                desc: 'Analyse complète de vos risques, visite de site et identification des vulnérabilités.',
+                highlight: 'Rapport sous 48h',
+              },
+              {
+                step: '02',
+                icon: <Server className="w-10 h-10" />,
+                title: 'Déploiement',
+                desc: 'Installation par nos équipes certifiées, configuration sur mesure et tests de résilience.',
+                highlight: 'Techniciens habilités',
+              },
+              {
+                step: '03',
+                icon: <Shield className="w-10 h-10" />,
+                title: 'Supervision 24/7',
+                desc: 'Surveillance continue, maintenance proactive et rapports mensuels personnalisés.',
+                highlight: 'Télésurveillance certifiée',
+              },
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                variants={fadeInUp}
+                className="relative bg-slate-50 p-8 rounded-2xl border border-slate-100 hover:shadow-lg hover:border-[#9ADE7B]/40 transition-all duration-300 group overflow-hidden"
+              >
+                <span className="absolute top-4 right-6 text-8xl font-black text-slate-200/60 select-none group-hover:text-[#9ADE7B]/10 transition-colors duration-500">
+                  {item.step}
+                </span>
+                <div className="text-[#9ADE7B] mb-5 relative z-10 group-hover:scale-110 transition-transform duration-300">
+                  {item.icon}
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3 relative z-10">
+                  {item.title}
+                </h3>
+                <p className="text-slate-600 leading-relaxed mb-6 relative z-10">
+                  {item.desc}
+                </p>
+                <span className="inline-block bg-[#9ADE7B]/20 text-slate-900 text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full relative z-10">
+                  {item.highlight}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
 
       {/* ========== CERTIFICATIONS ========== */}
       <section className="py-16 bg-white border-b border-slate-100">
@@ -421,19 +416,19 @@ export default function Home() {
             className="flex flex-wrap justify-center items-center gap-12"
           >
             <div className="flex items-center gap-3 text-slate-400">
-              <Award className="w-8 h-8 text-[#1B4332]" />
+              <Award className="w-8 h-8 text-[#9ADE7B]" />
               <span className="font-bold text-slate-700">ISO 27001</span>
             </div>
             <div className="flex items-center gap-3 text-slate-400">
-              <CheckCircle2 className="w-8 h-8 text-[#1B4332]" />
+              <CheckCircle2 className="w-8 h-8 text-[#9ADE7B]" />
               <span className="font-bold text-slate-700">Certification ANSSI</span>
             </div>
             <div className="flex items-center gap-3 text-slate-400">
-              <Shield className="w-8 h-8 text-[#1B4332]" />
+              <Shield className="w-8 h-8 text-[#9ADE7B]" />
               <span className="font-bold text-slate-700">Partenariat Interpol</span>
             </div>
             <div className="flex items-center gap-3 text-slate-400">
-              <Zap className="w-8 h-8 text-[#D4AF37]" />
+              <Zap className="w-8 h-8 text-[#9ADE7B]" />
               <span className="font-bold text-slate-700">Technologie brevetée</span>
             </div>
           </motion.div>
@@ -441,13 +436,14 @@ export default function Home() {
       </section>
 
       {/* ========== CTA FINAL ========== */}
-      <section className="py-24 bg-gradient-to-r from-slate-900 to-[#1B4332] text-white">
+      <section className="relative py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[#9ADE7B]/5 pointer-events-none"></div>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="max-w-4xl mx-auto text-center px-4 space-y-8"
+          className="max-w-4xl mx-auto text-center px-4 space-y-8 relative z-10"
         >
           <h2 className="text-3xl md:text-5xl font-extrabold">
             Prenez le contrôle de votre sécurité dès aujourd'hui.
@@ -457,7 +453,7 @@ export default function Home() {
           </p>
           <Link
             to="/contact"
-            className="inline-flex items-center bg-white text-[#1B4332] font-bold px-10 py-5 rounded-lg hover:bg-slate-100 transition-colors gap-2 shadow-2xl text-lg"
+            className="inline-flex items-center bg-[#9ADE7B] text-slate-900 font-extrabold px-10 py-5 rounded-lg hover:bg-white transition-all gap-2 shadow-2xl text-lg"
           >
             Demander un audit gratuit <ArrowRight className="w-5 h-5" />
           </Link>

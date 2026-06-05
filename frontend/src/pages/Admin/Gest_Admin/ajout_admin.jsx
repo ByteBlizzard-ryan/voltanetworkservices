@@ -23,7 +23,7 @@ export default function Ajout_Admin() {
 
   // Envoi des données vers Laravel
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Empêche le rechargement de la page
+    e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
@@ -51,7 +51,7 @@ export default function Ajout_Admin() {
         body: JSON.stringify({
           nom_complet: nom,
           email: email,
-          role_utilisateur: role, // Doit correspondre à la validation Laravel (ex: 'ADMIN')
+          role_utilisateur: role,
           password: password,
         }),
       });
@@ -59,7 +59,6 @@ export default function Ajout_Admin() {
       const data = await response.json();
 
       if (!response.ok) {
-        // Capture des erreurs de validation de Laravel (ex: email déjà pris)
         if (data.errors) {
           const errorsArray = Object.values(data.errors).flat();
           throw new Error(errorsArray.join(" "));
@@ -77,7 +76,6 @@ export default function Ajout_Admin() {
       setPassword('');
       setConfirmPassword('');
 
-      // Redirection après 1.5 seconde pour laisser le temps de lire le message de succès
       setTimeout(() => {
         naviguer('/admin/administrateur');
       }, 1500);
@@ -90,37 +88,41 @@ export default function Ajout_Admin() {
   };
 
   return (
-    <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-[Cambria,Cochin,Georgia,Times,'Times_New_Roman',serif] px-4 md:px-8">
+    <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-sans px-4 md:px-8 text-slate-900 overflow-x-hidden">
       
       {/* ── En-tête / Titre d'accès ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full gap-4">
         <div>
-          <p className="text-[#9ADE7B] font-bold text-xs tracking-widest uppercase">Gestion des accès</p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tighter text-gray-900 mt-1">Nouveau Profil de Sécurité</h1>
+          <span className="inline-block bg-[#9ADE7B]/20 text-slate-900 text-xs font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full mb-2">
+            Gestion des accès
+          </span>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900 m-0 leading-tight">
+            Nouveau Profil de <span className="text-[#9ADE7B]">Sécurité</span>
+          </h1>
         </div>
-        <button 
+        <button  
           type="button"
           onClick={retourner}
-          className="flex items-center gap-2 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer border-none active:scale-95 uppercase tracking-wider"
+          className="flex items-center gap-2 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer border-none active:scale-95 uppercase tracking-[0.2em]"
         >
           <CornerUpLeft size={16} /> Retour à la liste
         </button>
       </div>
 
       {/* ── Description ── */}
-      <p className="text-gray-400 text-sm max-w-3xl -mt-4">
+      <p className="text-slate-600 text-base max-w-3xl m-0 -mt-2 leading-relaxed">
         Configurer les privilèges et les identifiants pour un nouvel administrateur du réseau. 
         Chaque profil est audité en temps réel par le noyau Sentinel.
       </p>
 
       {/* ── Retours visuels de statut (Erreur / Succès) ── */}
       {errorMessage && (
-        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 max-w-4xl">
+        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm font-bold border border-red-100 max-w-4xl shadow-sm">
           ⚠️ {errorMessage}
         </div>
       )}
       {successMessage && (
-        <div className="p-4 bg-green-50 text-green-700 rounded-xl text-sm font-medium border border-green-100 max-w-4xl">
+        <div className="p-4 bg-[#9ADE7B]/20 text-slate-900 rounded-xl text-sm font-bold border border-slate-100 max-w-4xl shadow-sm">
           🛡️ {successMessage}
         </div>
       )}
@@ -128,13 +130,13 @@ export default function Ajout_Admin() {
       {/* ── Formulaire d'ajout ── */}
       <form 
         onSubmit={handleSubmit} 
-        className="flex flex-col gap-5 bg-white rounded-2xl p-6 md:p-8 w-full border border-gray-100 shadow-xl max-w-4xl"
+        className="flex flex-col gap-6 bg-white rounded-2xl p-6 md:p-8 w-full border border-slate-100 shadow-2xl max-w-4xl"
       >
         
         {/* Nom Complet */}
         <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <User size={15} /> Nom complet
+          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <User size={15} className="text-[#9ADE7B]" /> Nom complet
           </p>
           <input 
             type="text" 
@@ -142,14 +144,14 @@ export default function Ajout_Admin() {
             value={nom} 
             onChange={(e) => setNom(e.target.value)} 
             disabled={loading}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50"
+            className="bg-slate-50/50 text-sm w-full p-3.5 rounded-xl border border-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50 text-slate-900 font-medium"
           />
         </label>
 
         {/* Email Professionnel */}
         <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <Mail size={15} /> Email professionnel
+          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <Mail size={15} className="text-[#9ADE7B]" /> Email professionnel
           </p>
           <input 
             type="email" 
@@ -157,31 +159,35 @@ export default function Ajout_Admin() {
             value={email} 
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50"
+            className="bg-slate-50/50 text-sm w-full p-3.5 rounded-xl border border-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50 text-slate-900 font-medium"
           />
         </label>
 
         {/* Rôle et Privilèges */}
         <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <ShieldCog size={15} /> Rôle & Privilèges
+          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <ShieldCog size={15} className="text-[#9ADE7B]" /> Rôle & Privilèges
           </p>
-          <select 
-            value={role} 
-            onChange={(e) => setRole(e.target.value)}
-            disabled={loading}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all appearance-none cursor-pointer disabled:opacity-50"
-          >
-            <option value="">Sélectionnez un rôle</option>
-            <option value="ADMIN">Administrateur</option>
-            {/* Attention : ton contrôleur Laravel n'accepte pour l'instant QUE 'ADMIN' via Rule::in(['ADMIN']) */}
-          </select>
+          <div className="relative w-full">
+            <select 
+              value={role} 
+              onChange={(e) => setRole(e.target.value)}
+              disabled={loading}
+              className="bg-slate-50/50 text-sm w-full p-3.5 rounded-xl border border-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all appearance-none cursor-pointer disabled:opacity-50 text-slate-900 font-bold uppercase tracking-[0.1em]"
+            >
+              <option value="" className="normal-case tracking-normal text-slate-400 font-normal">Sélectionnez un rôle</option>
+              <option value="ADMIN">Administrateur</option>
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+              ▼
+            </div>
+          </div>
         </label>
 
         {/* Mot de passe */}
         <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <LockKeyhole size={15} /> Mot de passe
+          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <LockKeyhole size={15} className="text-[#9ADE7B]" /> Mot de passe
           </p>
           <input 
             type="password" 
@@ -189,14 +195,14 @@ export default function Ajout_Admin() {
             value={password} 
             onChange={(e) => setPassword(e.target.value)}
             disabled={loading}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50"
+            className="bg-slate-50/50 text-sm w-full p-3.5 rounded-xl border border-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50 text-slate-900"
           />
         </label>
 
         {/* Confirmer le mot de passe */}
         <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
-            <RotateCcwKey size={15} /> Confirmer mot de passe
+          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">
+            <RotateCcwKey size={15} className="text-[#9ADE7B]" /> Confirmer mot de passe
           </p>
           <input 
             type="password" 
@@ -204,17 +210,17 @@ export default function Ajout_Admin() {
             value={confirmPassword} 
             onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={loading}
-            className="bg-gray-50/50 text-sm w-full p-3.5 rounded-xl border border-gray-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50"
+            className="bg-slate-50/50 text-sm w-full p-3.5 rounded-xl border border-slate-100 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#9ADE7B] transition-all disabled:opacity-50 text-slate-900"
           />
         </label>
 
         {/* ── Actions de validation ── */}
-        <div className="flex justify-between items-center pt-6 border-t border-gray-50 mt-4 gap-4">
+        <div className="flex justify-between items-center pt-6 border-t border-slate-100 mt-4 gap-4">
           <button 
             type="button"
             onClick={retourner}
             disabled={loading}
-            className="bg-gray-50 hover:bg-red-50 text-gray-500 hover:text-red-600 px-6 py-3 rounded-xl cursor-pointer transition-colors border-none font-bold text-xs uppercase tracking-wider active:scale-95 disabled:opacity-50"
+            className="bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 px-6 py-3 rounded-xl cursor-pointer transition-colors border-none font-bold text-xs uppercase tracking-[0.2em] active:scale-95 disabled:opacity-50"
           >
             Annuler
           </button>
@@ -222,7 +228,7 @@ export default function Ajout_Admin() {
           <button 
             type="submit"
             disabled={loading}
-            className="bg-[#F6F7F9] hover:bg-[#9ADE7B] text-gray-900 hover:text-white px-6 py-3 rounded-xl flex items-center gap-2 cursor-pointer transition-all border-none font-bold text-xs uppercase tracking-wider shadow-sm active:scale-95 disabled:opacity-50"
+            className="bg-slate-950 hover:bg-[#9ADE7B] text-white hover:text-slate-900 px-6 py-3 rounded-xl flex items-center gap-2 cursor-pointer transition-all border-none font-bold text-xs uppercase tracking-[0.2em] shadow-lg active:scale-95 disabled:opacity-50"
           >
             {loading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

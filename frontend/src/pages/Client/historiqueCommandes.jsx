@@ -34,7 +34,6 @@ export default function OrderHistory() {
         setOrders(response.data);
       } catch (error) {
         console.error("Erreur lors du chargement des commandes:", error);
-        // Si le token est expiré ou invalide (401), on déconnecte
         if (error.response?.status === 401) handleLogout();
       } finally {
         setLoading(false);
@@ -49,7 +48,6 @@ export default function OrderHistory() {
     const token = localStorage.getItem('token');
     
     try {
-      // 1. Appel optionnel à l'API pour révoquer le token côté serveur
       if (token) {
         await axios.post('http://127.0.0.1:8000/api/logout', {}, {
           headers: { Authorization: `Bearer ${token}` }
@@ -58,11 +56,8 @@ export default function OrderHistory() {
     } catch (error) {
       console.error("Erreur déconnexion API:", error);
     } finally {
-      // 2. Nettoyage local (Quoi qu'il arrive)
       localStorage.removeItem('token');
-      localStorage.removeItem('user'); // Si tu stockes les infos user
-      
-      // 3. Redirection
+      localStorage.removeItem('user'); 
       navigate('/login');
     }
   };
@@ -73,64 +68,71 @@ export default function OrderHistory() {
 
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'PAYÉE': return 'text-green-500';
-      case 'EN COURS': return 'text-orange-500';
-      case 'ANNULÉE': return 'text-red-500';
-      default: return 'text-gray-400';
+      case 'PAYÉE': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
+      case 'EN COURS': return 'text-amber-600 bg-amber-50 border-amber-100';
+      case 'ANNULÉE': return 'text-rose-600 bg-rose-50 border-rose-100';
+      default: return 'text-slate-500 bg-slate-50 border-slate-100';
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F6F7F9]">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <Loader2 className="animate-spin text-[#9ADE7B] w-10 h-10" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F6F7F9] pt-10 pb-20">
+    <div className="min-h-screen bg-slate-50 pt-24 pb-20 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
-        {/* HEADER */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <h1 className="text-5xl font-black tracking-tighter text-gray-900 flex items-center gap-4 uppercase">
-            Mon Profil <span className="w-3 h-3 bg-[#9ADE7B] rounded-full"></span>
+        {/* --- HEADER UNIFORMISÉ --- */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 flex items-center gap-4">
+            Mon Profil <span className="w-2.5 h-2.5 bg-[#9ADE7B] rounded-full shadow-sm shadow-[#9ADE7B]/50"></span>
           </h1>
-          <p className="text-gray-500 font-medium mt-2 italic">Suivez vos acquisitions Volta Network.</p>
+          <p className="text-slate-500 text-sm font-medium">Suivez vos acquisitions Volta Network depuis votre espace personnel.</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-4 gap-8 items-start">
           
-          {/* SIDEBAR */}
-          <motion.aside initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[0.5rem] p-6 shadow-sm border border-gray-100 space-y-2 sticky top-10">
-            <div className="flex items-center gap-3 p-4 mb-6 bg-[#F6F7F9] rounded-[0.5rem]">
-              <img src={logo} alt="Volta" className="w-8 h-8" />
-              <span className="text-[10px] font-black uppercase tracking-tighter text-gray-900">Volta Network</span>
+          {/* --- SIDEBAR UNIFORMISÉE --- */}
+          <motion.aside initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 space-y-1.5 lg:sticky lg:top-24">
+            <div className="flex items-center gap-3 p-4 mb-4 bg-slate-50 rounded-lg border border-slate-100">
+              <img src={logo} alt="Volta" className="w-6 h-6 object-contain" />
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-900 leading-tight">
+                Volta Network <br /> Services
+              </span>
             </div>
 
-            <Link to="/profil"><SidebarItem icon={<User size={18}/>} label="Informations" active={location.pathname === "/profil"}/></Link>
-            <Link to="/favoris"><SidebarItem icon={<Heart size={18}/>} label="Favoris" active={location.pathname === "/favoris"}/></Link>
-            <Link to="/historique-commandes"><SidebarItem icon={<History size={18}/>} label="Historique" active={true}/></Link>
+            <Link to="/profil" className="block">
+              <SidebarItem icon={<User size={16}/>} label="Informations" active={location.pathname === "/profil"}/>
+            </Link>
+            <Link to="/favoris" className="block">
+              <SidebarItem icon={<Heart size={16}/>} label="Favoris" active={location.pathname === "/favoris"}/>
+            </Link>
+            <Link to="/historique-commandes" className="block">
+              <SidebarItem icon={<History size={16}/>} label="Historique" active={location.pathname === "/historique-commandes" || true}/>
+            </Link>
 
-            {/* BOUTON DÉCONNEXION MIS À JOUR */}
             <button 
               onClick={handleLogout}
-              className="w-full flex items-center gap-4 px-6 py-4 text-red-500 font-bold text-[10px] uppercase mt-10 hover:bg-red-50 rounded-[0.5rem] transition-all tracking-widest group"
+              className="w-full flex items-center gap-4 px-5 py-3.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all font-extrabold text-[10px] uppercase tracking-widest group text-left mt-8"
             >
-              <LogOut size={18} className="group-hover:-translate-x-1 transition-transform"/> Déconnexion
+              <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform"/> Déconnexion
             </button>
           </motion.aside>
 
-          {/* CONTENU PRINCIPAL */}
-          <main className="lg:col-span-3 space-y-8">
-            <div className="flex gap-8 border-b border-gray-200 pb-1 overflow-x-auto no-scrollbar">
+          {/* --- CONTENU PRINCIPAL --- */}
+          <main className="lg:col-span-3 space-y-6">
+            <div className="flex gap-8 border-b border-slate-200 pb-0.5 overflow-x-auto no-scrollbar">
               {['TOUTES', 'EN COURS', 'PAYÉE', 'ANNULÉE'].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`pb-4 text-[11px] font-black tracking-[0.2em] transition-all relative whitespace-nowrap ${
-                    activeTab === tab ? 'text-gray-900' : 'text-gray-400'
+                  className={`pb-3 text-[11px] font-extrabold tracking-widest transition-all relative whitespace-nowrap ${
+                    activeTab === tab ? 'text-slate-900' : 'text-slate-400 hover:text-slate-600'
                   }`}
                 >
                   {tab}
@@ -154,56 +156,59 @@ export default function OrderHistory() {
                         layout
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white rounded-[0.5rem] p-6 border border-gray-50 shadow-sm flex flex-col md:flex-row items-center justify-between gap-8 group hover:shadow-md transition-all duration-300"
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        className="bg-white rounded-xl p-6 border border-slate-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group hover:shadow-md transition-all duration-300"
                       >
-                        <div className="flex items-center gap-6 flex-1 w-full">
-                          <div className="w-20 h-20 bg-[#F6F7F9] rounded-[0.5rem] overflow-hidden shrink-0 border border-gray-100">
+                        <div className="flex items-center gap-5 flex-1 w-full min-w-0">
+                          <div className="w-16 h-16 bg-slate-50 rounded-lg overflow-hidden shrink-0 border border-slate-100">
                             <img 
                               src={order.produits?.[0]?.url_image_principale || logo} 
-                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
-                              alt=""
+                              className="w-full h-full object-cover transition-all duration-500" 
+                              alt={firstProductName}
                             />
                           </div>
-                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-[#9ADE7B] uppercase tracking-[0.15em] line-clamp-1">{firstProductName}</p>
-                            <h3 className="text-xl font-black text-gray-950 uppercase italic tracking-tighter">VN-{shortId}</h3>
-                            <div className="flex items-center gap-2 text-gray-400 text-[10px] font-bold">
-                               <Calendar size={12} className="text-gray-300"/> 
+                          <div className="space-y-1 min-w-0">
+                            <p className="text-[10px] font-extrabold text-[#9ADE7B] uppercase tracking-wider truncate">{firstProductName}</p>
+                            <h3 className="text-xl font-extrabold text-slate-900 tracking-tight">VN-{shortId}</h3>
+                            <div className="flex items-center gap-2 text-slate-400 text-xs font-medium">
+                               <Calendar size={13} className="text-slate-300"/> 
                                {new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                             </div>
                           </div>
                         </div>
 
-                        <div className="min-w-[130px] w-full md:w-auto text-left">
-                          <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">État actuel</p>
-                          <div className={`flex items-center gap-2 font-black text-[11px] uppercase tracking-tighter ${getStatusStyle(order.statut_commande)}`}>
-                            <div className="w-2 h-2 rounded-full bg-current shadow-[0_0_8px_currentColor]"></div>
+                        <div className="w-full md:w-auto shrink-0">
+                          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">État actuel</p>
+                          <div className={`inline-flex items-center gap-2 font-bold text-xs px-3 py-1 rounded-full border ${getStatusStyle(order.statut_commande)}`}>
+                            <div className="w-1.5 h-1.5 rounded-full bg-current"></div>
                             {order.statut_commande}
                           </div>
                         </div>
 
-                        <div className="min-w-[140px] w-full md:w-auto text-left">
-                          <p className="text-[9px] font-black text-gray-300 uppercase tracking-widest mb-1">Montant Total</p>
-                          <p className="text-xl font-black text-gray-950 tracking-tight">
-                            {(Number(order.total_commande) || 0).toLocaleString()} <span className="text-[10px]">FCFA</span>
+                        <div className="w-full md:w-auto shrink-0">
+                          <p className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Montant Total</p>
+                          <p className="text-xl font-extrabold text-slate-950 tracking-tight">
+                            {(Number(order.total_commande) || 0).toLocaleString()} <span className="text-xs font-bold text-slate-500">FCFA</span>
                           </p>
                         </div>
 
                         <button 
                           onClick={() => setSelectedOrder(order)}
-                          className="w-full md:w-auto px-8 py-4 bg-transparent border-2 border-gray-100 hover:border-[#9ADE7B] hover:text-[#1A4301] text-gray-400 font-black text-[10px] uppercase tracking-[0.2em] rounded-[0.5rem] transition-all flex items-center justify-center gap-2 group/btn"
+                          className="w-full md:w-auto px-6 py-3.5 bg-slate-50 hover:bg-slate-900 text-slate-600 hover:text-[#9ADE7B] border border-slate-200 hover:border-slate-900 font-extrabold text-[10px] uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 group/btn shrink-0"
                         >
-                          Détails <ExternalLink size={14} className="group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 transition-transform"/>
+                          Détails <ExternalLink size={13} className="group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 transition-transform"/>
                         </button>
                       </motion.div>
                     );
                   })}
                 </AnimatePresence>
               ) : (
-                <div className="bg-white p-20 rounded-[0.5rem] border-2 border-dashed border-gray-100 text-center flex flex-col items-center">
-                  <Package className="w-12 h-12 text-gray-100 mb-4" />
-                  <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-4">Aucune commande trouvée</p>
-                  <Link to="/boutique" className="text-[#9ADE7B] font-black uppercase text-[11px] hover:underline transition-all">Parcourir la boutique</Link>
+                <div className="bg-white p-16 rounded-xl border border-dashed border-slate-200 text-center flex flex-col items-center shadow-sm">
+                  <Package className="w-12 h-12 text-slate-200 mb-4" />
+                  <p className="text-slate-400 font-extrabold uppercase text-[10px] tracking-widest mb-4">Aucune commande trouvée</p>
+                  <Link to="/boutique" className="inline-flex items-center bg-slate-900 hover:bg-black text-[#9ADE7B] font-extrabold px-6 py-3.5 rounded-lg text-[11px] uppercase tracking-widest transition-all">
+                    Parcourir la boutique
+                  </Link>
                 </div>
               )}
             </div>
@@ -214,87 +219,87 @@ export default function OrderHistory() {
       {/* --- MODAL DE DÉTAILS --- */}
       <AnimatePresence>
         {selectedOrder && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-x-hidden">
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setSelectedOrder(null)}
-              className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" 
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
             />
             
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-3xl bg-white rounded-[0.5rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border border-gray-100"
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              className="relative w-full max-w-2xl bg-white rounded-xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col border border-slate-100"
             >
-              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-[#F6F7F9]">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#9ADE7B] rounded-full flex items-center justify-center text-[#1A4301]">
-                    <ShoppingBag size={24} />
+                  <div className="w-10 h-10 bg-[#9ADE7B]/15 rounded-lg flex items-center justify-center text-slate-900">
+                    <ShoppingBag size={20} />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black uppercase italic tracking-tighter leading-none">Récapitulatif</h2>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Ref: VN-{selectedOrder.id_commande.split('-')[0].toUpperCase()}</p>
+                    <h2 className="text-lg font-extrabold text-slate-900 leading-none">Récapitulatif de commande</h2>
+                    <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mt-1">Ref: VN-{selectedOrder.id_commande.split('-')[0].toUpperCase()}</p>
                   </div>
                 </div>
-                <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-400 hover:text-gray-900">
-                  <X size={24}/>
+                <button onClick={() => setSelectedOrder(null)} className="p-2 hover:bg-slate-200/60 rounded-full transition-colors text-slate-400 hover:text-slate-900">
+                  <X size={20}/>
                 </button>
               </div>
 
-              <div className="p-8 overflow-y-auto space-y-10 no-scrollbar">
-                <div className="space-y-4">
-                  <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 border-b border-gray-50 pb-2">Articles Commandés</h4>
+              <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Articles Commandés</h4>
                   <div className="grid gap-3">
                     {selectedOrder.produits?.map((prod, i) => (
-                      <div key={i} className="flex items-center gap-4 p-4 rounded-[0.5rem] bg-[#F6F7F9] border border-gray-100">
-                        <img src={prod.url_image_principale} className="w-16 h-16 object-cover rounded-[0.3rem] bg-white" alt="" />
-                        <div className="flex-1">
-                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{prod.nom_produit}</p>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Quantité : {prod.pivot?.quantite_commandee || 1}</p>
+                      <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <img src={prod.url_image_principale} className="w-12 h-12 object-cover rounded-md bg-white border border-slate-100" alt={prod.nom_produit} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{prod.nom_produit}</p>
+                          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">Quantité : {prod.pivot?.quantite_commandee || 1}</p>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-black text-gray-900">{Number(prod.prix_unitaire_produit).toLocaleString()} CFA</p>
-                          <p className="text-[9px] font-bold text-[#9ADE7B] uppercase tracking-widest mt-1">Sous-total : {Number(prod.pivot?.prix_global_scelle).toLocaleString()}</p>
+                        <div className="text-right shrink-0">
+                          <p className="text-xs font-extrabold text-slate-900">{Number(prod.prix_unitaire_produit).toLocaleString()} CFA</p>
+                          <p className="text-[9px] font-extrabold text-[#9ADE7B] uppercase tracking-wider mt-0.5">Total : {Number(prod.pivot?.prix_global_scelle).toLocaleString()} CFA</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-10">
-                  <div className="space-y-4">
-                    <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 border-b border-gray-50 pb-2"><MapPin size={14}/> Destination</h4>
-                    <div className="space-y-2">
-                      <p className="text-sm font-black text-gray-900 uppercase italic underline decoration-[#9ADE7B] decoration-2 underline-offset-4">{selectedOrder.nom_destinataire}</p>
-                      <p className="text-xs text-gray-500 font-bold leading-relaxed">{selectedOrder.adresse_livraison || "Adresse non fournie"}</p>
-                      <p className="text-xs text-gray-400 font-black tracking-widest">{selectedOrder.telephone_contact}</p>
+                <div className="grid md:grid-cols-2 gap-6 pt-2">
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2"><MapPin size={12}/> Destination</h4>
+                    <div className="space-y-1.5">
+                      <p className="text-sm font-bold text-slate-900">{selectedOrder.nom_destinataire}</p>
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">{selectedOrder.adresse_livraison || "Adresse non fournie"}</p>
+                      <p className="text-xs text-slate-400 font-bold tracking-wider">{selectedOrder.telephone_contact}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <h4 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2 border-b border-gray-50 pb-2"><CreditCard size={14}/> Détails Transaction</h4>
-                    <div className="space-y-3 bg-white p-4 rounded-[0.5rem] border border-gray-100 shadow-sm">
-                      <div className="flex justify-between items-center text-xs font-black uppercase tracking-tighter">
-                        <span className="text-[10px] font-bold text-gray-400 italic">Canal</span>
-                        <span>{selectedOrder.canal_commande}</span>
+                  <div className="space-y-3">
+                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest flex items-center gap-2 border-b border-slate-100 pb-2"><CreditCard size={12}/> Détails Transaction</h4>
+                    <div className="space-y-2.5 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                      <div className="flex justify-between items-center text-xs font-medium">
+                        <span className="text-slate-400">Canal</span>
+                        <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">{selectedOrder.canal_commande}</span>
                       </div>
-                      <div className="flex justify-between items-center text-xs font-black uppercase tracking-tighter">
-                        <span className="text-[10px] font-bold text-gray-400 italic">État</span>
-                        <span className={getStatusStyle(selectedOrder.statut_commande)}>{selectedOrder.statut_commande}</span>
+                      <div className="flex justify-between items-center text-xs font-medium">
+                        <span className="text-slate-400">Statut</span>
+                        <span className="font-bold uppercase text-[11px] tracking-wider text-slate-900">{selectedOrder.statut_commande}</span>
                       </div>
-                      <div className="pt-3 border-t border-gray-50 flex justify-between items-center">
-                        <span className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Payé</span>
-                        <span className="text-2xl font-black text-gray-950 tracking-tighter">{Number(selectedOrder.total_commande).toLocaleString()} <span className="text-[10px]">CFA</span></span>
+                      <div className="pt-2.5 border-t border-slate-200/60 flex justify-between items-baseline">
+                        <span className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Total</span>
+                        <span className="text-xl font-extrabold text-slate-950 tracking-tight">{Number(selectedOrder.total_commande).toLocaleString()} <span className="text-xs font-bold text-slate-500">CFA</span></span>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="pt-6 border-t border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4 text-[9px] font-black text-gray-300 uppercase tracking-[0.3em]">
-                  <div className="flex items-center gap-2"><Calendar size={12}/> {new Date(selectedOrder.created_at).toLocaleString('fr-FR')}</div>
-                  <div className="flex items-center gap-2"><Info size={12}/> Volta Network Services</div>
-                </div>
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-2 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2"><Calendar size={12}/> {new Date(selectedOrder.created_at).toLocaleString('fr-FR')}</div>
+                <div className="flex items-center gap-2"><Info size={12}/> Volta Network Services</div>
               </div>
             </motion.div>
           </div>
@@ -304,10 +309,14 @@ export default function OrderHistory() {
   );
 }
 
-const SidebarItem = ({ icon, label, active }) => (
-  <div className={`w-full flex items-center gap-4 px-6 py-4 rounded-[0.5rem] transition-all font-bold text-[11px] uppercase tracking-[0.15em] ${
-    active ? 'bg-[#9ADE7B] text-[#1A4301] shadow-lg shadow-[#9ADE7B]/10' : 'text-gray-400 hover:bg-gray-50'
+// --- SOUS-COMPOSANT SIDEBAR UNIFORMISÉ ---
+const SidebarItem = ({ icon, label, active = false }) => (
+  <div className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-lg transition-all font-extrabold text-[11px] uppercase tracking-wider cursor-pointer ${
+    active 
+      ? 'bg-[#9ADE7B] text-slate-900 shadow-md shadow-[#9ADE7B]/10' 
+      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
   }`}>
-    {icon} <span>{label}</span>
+    {icon} 
+    <span>{label}</span>
   </div>
 );

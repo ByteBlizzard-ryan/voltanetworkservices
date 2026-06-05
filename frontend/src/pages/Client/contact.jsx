@@ -10,9 +10,8 @@ export default function Contact() {
 
   const sendEmail = (e) => {
     e.preventDefault();
-    setLoading(true);
+    loading(true);
 
-    // Identifiants (bien entourés de guillemets "")
     const SERVICE_ID = "service_yx6dh3g";
     const TEMPLATE_ID = "template_mdhzwue";
     const PUBLIC_KEY = "gZpkNd-wxrIRlhPNv";
@@ -32,7 +31,7 @@ export default function Contact() {
   };
   
   return (
-    <div className="min-h-screen bg-[#F6F7F9] pt-24 pb-20 overflow-hidden">
+    <div className="min-h-screen bg-slate-50 pt-32 pb-24 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* --- HEADER --- */}
@@ -40,75 +39,75 @@ export default function Contact() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="mb-16"
+          className="mb-16 space-y-4"
         >
-          <div className="flex items-center gap-2 mb-4">
+          <div className="flex items-center gap-2">
             <motion.div 
-              animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="w-2 h-2 rounded-full bg-[#9ADE7B] shadow-[0_0_10px_#9ADE7B]"
-            ></motion.div>
-            <span className="text-[#9ADE7B] font-bold text-[10px] uppercase tracking-[0.3em]">
+              animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="w-2 h-2 rounded-full bg-[#9ADE7B] shadow-[0_0_8px_rgba(154,222,123,0.6)]"
+            />
+            <span className="text-[#9ADE7B] font-bold text-xs uppercase tracking-[0.2em]">
               Sentinel Active
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-gray-900 mb-6">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900">
             Contactez-nous
           </h1>
-          <p className="text-gray-500 max-w-2xl text-lg leading-relaxed text-justify">
-            Une question sur nos infrastructures sécurisées ou besoin d'un accompagnement technique ? 
-            Nos experts sont à votre écoute pour propulser votre réseau vers la prochaine étape.
+          <p className="text-slate-500 max-w-2xl text-base md:text-lg leading-relaxed">
+            Une question sur nos infrastructures sécurisées ou besoin d'un accompagnement technique dédié ? 
+            Nos experts sont à votre écoute pour propulser votre architecture réseau vers la prochaine étape.
           </p>
         </motion.header>
 
-        <div className="grid lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
           {/* --- FORMULAIRE (GAUCHE) --- */}
           <motion.div 
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-7 bg-white p-8 md:p-12 shadow-sm rounded-2xl border border-gray-50"
+            className="lg:col-span-7 bg-white p-8 md:p-12 shadow-sm rounded-2xl border border-slate-100"
           >
             {sent ? (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center justify-center py-12 text-center"
+                className="flex flex-col items-center justify-center py-16 text-center space-y-4"
               >
-                <CheckCircle className="w-16 h-16 text-[#9ADE7B] mb-4" />
-                <h3 className="text-2xl font-bold mb-2 uppercase tracking-tighter">Message envoyé !</h3>
-                <p className="text-gray-500">Nous reviendrons vers vous dans les plus brefs délais.</p>
+                <CheckCircle className="w-14 h-14 text-[#9ADE7B]" />
+                <h3 className="text-2xl font-bold tracking-tight text-slate-900 uppercase">Message envoyé !</h3>
+                <p className="text-slate-500 text-sm max-w-xs">Nous analyserons votre demande et reviendrons vers vous dans les plus brefs délais.</p>
               </motion.div>
             ) : (
               <form ref={formRef} onSubmit={sendEmail} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nom Complet</label>
-                    <input name="from_name" required type="text" placeholder="Jean Dupont" className="w-full bg-[#F6F7F9] border-none py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B] outline-none transition-all rounded-xl" />
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nom Complet</label>
+                    <input name="from_name" required type="text" placeholder="Jean Dupont" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Email Professionnel</label>
-                    <input name="reply_to" required type="email" placeholder="jean@entreprise.com" className="w-full bg-[#F6F7F9] border-none py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B] outline-none transition-all rounded-xl" />
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Email Professionnel</label>
+                    <input name="reply_to" required type="email" placeholder="jean@entreprise.com" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Téléphone</label>
-                  <input name="phone" type="text" placeholder="+237 6 00 00 00 00" className="w-full bg-[#F6F7F9] border-none py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B] outline-none transition-all rounded-xl" />
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Téléphone</label>
+                  <input name="phone" type="text" placeholder="+237 6 00 00 00 00" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Message</label>
-                  <textarea name="message" required rows="6" placeholder="Comment pouvons-nous vous aider ?" className="w-full bg-[#F6F7F9] border-none py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B] outline-none transition-all resize-none rounded-xl"></textarea>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Message</label>
+                  <textarea name="message" required rows="6" placeholder="Comment pouvons-nous vous aider ?" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all resize-none rounded-xl text-sm"></textarea>
                 </div>
 
                 <motion.button 
                   disabled={loading}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, backgroundColor: "#000000", color: "#9ADE7B" }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="bg-[#9ADE7B] hover:bg-black hover:text-[#9ADE7B] text-[#1A4301] disabled:opacity-50 disabled:cursor-not-allowed font-bold py-5 px-10 rounded-xl flex items-center gap-3 transition-all uppercase tracking-widest text-xs group"
+                  className="bg-[#9ADE7B] text-slate-900 disabled:opacity-50 disabled:cursor-not-allowed font-extrabold py-4 px-10 rounded-xl flex items-center gap-3 transition-all uppercase tracking-wider text-xs group shadow-md cursor-pointer"
                 >
                   {loading ? (
                     <>Envoi en cours... <Loader2 className="w-4 h-4 animate-spin" /></>
@@ -121,7 +120,7 @@ export default function Contact() {
           </motion.div>
 
           {/* --- INFOS & MAP (DROITE) --- */}
-          <div className="lg:col-span-5 space-y-8">
+          <div className="lg:col-span-5 space-y-8 w-full">
             
             <motion.div 
               initial="hidden"
@@ -137,40 +136,40 @@ export default function Contact() {
                 <motion.div 
                   key={i}
                   variants={{ hidden: { opacity: 0, x: 20 }, visible: { opacity: 1, x: 0 } }}
-                  className="flex gap-6 items-start group"
+                  className="flex gap-5 items-start group"
                 >
-                  <div className="w-12 h-12 bg-white flex items-center justify-center shadow-sm shrink-0 rounded-xl group-hover:bg-[#9ADE7B] group-hover:text-white transition-colors duration-500">
-                    {React.cloneElement(info.icon, { size: 20, className: "group-hover:scale-110 transition-transform" })}
+                  <div className="w-11 h-11 bg-white flex items-center justify-center shadow-sm shrink-0 rounded-xl border border-slate-100 group-hover:bg-[#9ADE7B] group-hover:text-slate-900 transition-colors duration-500 text-[#9ADE7B]">
+                    {React.cloneElement(info.icon, { size: 18, className: "group-hover:scale-110 transition-transform duration-500" })}
                   </div>
-                  <div>
-                    <h4 className={`font-bold mb-1 uppercase text-xs tracking-wider ${info.highlight ? 'text-[#9ADE7B]' : 'text-gray-900'}`}>{info.title}</h4>
-                    <p className="text-gray-500 text-sm">{info.content}</p>
-                    {info.highlight && <p className="text-[9px] font-bold text-gray-400 uppercase mt-1 tracking-tighter">Disponible 24/7 Enterprise</p>}
+                  <div className="space-y-0.5">
+                    <h4 className={`font-bold uppercase text-xs tracking-wider ${info.highlight ? 'text-[#9ADE7B]' : 'text-slate-900'}`}>{info.title}</h4>
+                    <p className="text-slate-500 text-sm">{info.content}</p>
+                    {info.highlight && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mt-1">Disponible 24/7 Enterprise</p>}
                   </div>
                 </motion.div>
               ))}
             </motion.div>
 
-            {/* Suivez-nous */}
+            {/* Réseaux Sociaux */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="bg-[#1A1D1F] p-8 text-white rounded-2xl relative overflow-hidden"
+              className="bg-gradient-to-br from-slate-900 to-[#1B4332] p-8 text-white rounded-2xl relative overflow-hidden shadow-lg border border-slate-800"
             >
-              <h4 className="font-bold mb-6 tracking-tight relative z-10 uppercase text-xs">Réseaux Sociaux</h4>
+              <h4 className="font-bold mb-6 tracking-wider uppercase text-xs text-slate-300 relative z-10">Réseaux Sociaux</h4>
               <div className="flex gap-4 relative z-10">
                 {[Share2, Globe, Network].map((Icon, i) => (
                   <motion.button 
                     key={i}
-                    whileHover={{ y: -5, backgroundColor: "#9ADE7B", color: "#000" }}
-                    className="w-12 h-12 bg-white/5 flex items-center justify-center transition-colors rounded-xl"
+                    whileHover={{ y: -4, backgroundColor: "#9ADE7B", color: "#000000" }}
+                    className="w-11 h-11 bg-white/10 flex items-center justify-center transition-colors rounded-xl cursor-pointer"
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4" />
                   </motion.button>
                 ))}
               </div>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#9ADE7B]/10 blur-3xl rounded-full"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_center,rgba(154,222,123,0.06)_0%,transparent_70%)] pointer-events-none" />
             </motion.div>
 
             {/* Carte (Map) */}
@@ -178,19 +177,20 @@ export default function Contact() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.8 }}
-              className="rounded-2xl overflow-hidden grayscale contrast-125 h-56 bg-gray-300 relative group border border-gray-200"
+              className="rounded-2xl overflow-hidden grayscale contrast-125 h-56 bg-slate-200 relative group border border-slate-200 shadow-sm"
             >
-              <div className="absolute inset-0 bg-[#9ADE7B]/10 group-hover:bg-transparent transition-colors duration-700"></div>
+              <div className="absolute inset-0 bg-[#9ADE7B]/5 group-hover:bg-transparent transition-colors duration-700 z-10" />
               <img src="https://api.maptiler.com/static/styles/toner/static/2.35,48.86,12/400x250.png?key=get_your_key" alt="Map Location" className="w-full h-full object-cover" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+              
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
                 <div className="relative">
                   <motion.div 
-                    animate={{ scale: [1, 2, 1], opacity: [0.5, 0, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    animate={{ scale: [1, 2.2, 1], opacity: [0.5, 0, 0.5] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute inset-0 bg-[#9ADE7B] rounded-lg"
-                  ></motion.div>
-                  <div className="w-10 h-10 bg-[#9ADE7B] rounded-xl flex items-center justify-center shadow-2xl relative z-10">
-                    <div className="w-2 h-2 bg-[#1A4301] rounded-full"></div>
+                  />
+                  <div className="w-10 h-10 bg-[#9ADE7B] rounded-xl flex items-center justify-center shadow-2xl relative">
+                    <div className="w-2 h-2 bg-slate-900 rounded-full" />
                   </div>
                 </div>
               </div>

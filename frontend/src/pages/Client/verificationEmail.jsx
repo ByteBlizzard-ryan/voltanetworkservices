@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowRight, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../../assets/logo.svg';
@@ -9,7 +9,6 @@ export default function VerifyEmail() {
     const navigate = useNavigate();
     
     // On récupère l'email passé depuis la page Register.jsx
-    // Si l'utilisateur arrive ici sans email, on met une valeur par défaut
     const email = location.state?.email || "votre email";
 
     const [otp, setOtp] = useState(new Array(6).fill(""));
@@ -70,49 +69,48 @@ export default function VerifyEmail() {
                 otp: fullOtp
             });
 
-            // Si succès : On peut stocker le token et rediriger
+            // Si succès : On stocke le token de session et redirige
             localStorage.setItem('token', response.data.access_token);
-            alert("Vérification réussie !");
-            navigate('/'); // Ou ta page d'accueil
+            navigate('/');
             
         } catch (err) {
-            setError(err.response?.data?.message || "Code invalide ou expiré.");
+            setError(err.response?.data?.message || "Code OTP invalide ou expiré.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#F6F7F9] flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-y-auto font-sans">
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-start md:justify-center p-4 md:p-8 overflow-y-auto font-sans text-slate-900">
             
-            {/* 1. Header (Logo & Titre) */}
-            <div className="text-center mt-6 mb-8 md:mb-12 flex flex-col items-center gap-4 md:gap-6 w-full max-w-[90%]">
-                <h2 className="text-base md:text-xl font-bold tracking-[0.2em] text-gray-950 uppercase px-2">
-                    VOLTA NETWORK SERVICES
+            {/* ── 1. HEADER UNIFORMISÉ ── */}
+            <div className="text-center mt-6 mb-8 md:mb-10 flex flex-col items-center gap-4 w-full">
+                <h2 className="text-[10px] font-extrabold tracking-[0.25em] text-slate-900 uppercase leading-tight px-2">
+                    Volta Network <br /> Services
                 </h2>
-                <img src={logo} alt="Volta Logo" className="w-16 md:w-24" />
+                <img src={logo} alt="Volta Logo" className="w-12 md:w-14 object-contain" />
             </div>
 
-            {/* 2. Carte de Vérification */}
-            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-[0_15px_60px_-15px_rgba(0,0,0,0.05)] w-full max-w-md border border-gray-100">
+            {/* ── 2. CARTE DE VÉRIFICATION OTP ── */}
+            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-sm w-full max-w-md border border-slate-100">
                 
-                <div className="text-center sm:text-left mb-8 md:mb-10">
-                    <h1 className="text-2xl md:text-3xl font-semibold text-gray-950 tracking-tighter">
-                        Vérification de votre email
+                <div className="text-center sm:text-left mb-8">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                        Vérification de l'email
                     </h1>
-                    <p className="text-xs md:text-sm text-gray-400 mt-3 leading-relaxed">
-                        Un code de vérification a été envoyé à l'adresse <br className="hidden md:block"/>
-                        <span className="font-bold text-gray-700">{email}</span>.
+                    <p className="text-xs font-medium text-slate-400 mt-2 leading-relaxed">
+                        Un code d'authentification a été envoyé à l'adresse <br className="hidden md:block"/>
+                        <span className="font-bold text-slate-900 transition-colors">{email}</span>.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-500 text-xs rounded-lg border border-red-100">
+                    <div className="mb-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-xl tracking-wide uppercase">
                         {error}
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Champs Code de vérification (6 cases) */}
                     <div className="flex justify-between gap-2 md:gap-3">
                         {otp.map((data, index) => (
@@ -123,44 +121,49 @@ export default function VerifyEmail() {
                                 ref={(el) => (inputRefs.current[index] = el)}
                                 value={data}
                                 onChange={(e) => handleChange(e.target, index)}
+                                tracking-widest
                                 onKeyDown={(e) => handleKeyDown(e, index)}
-                                className="w-full h-12 md:h-14 text-center text-lg md:text-xl font-bold bg-[#EAECEF] border-2 border-transparent rounded-xl focus:border-[#9ADE7B] focus:bg-white transition-all outline-none"
+                                className="w-full h-12 md:h-14 text-center text-lg font-extrabold bg-slate-50 border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl transition-all outline-none text-slate-900"
                             />
                         ))}
                     </div>
 
-                    {/* Bouton Vérifier */}
+                    {/* Bouton de Validation */}
                     <button 
                         type="submit"
                         disabled={loading}
-                        className={`w-full min-h-[48px] ${loading ? 'bg-gray-400' : 'bg-[#9ADE7B] hover:bg-[#89cf6a]'} text-gray-900 font-bold py-3.5 md:py-4 rounded-xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.98] shadow-sm text-sm md:text-base uppercase`}
+                        className={`w-full h-12 ${
+                            loading ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B]'
+                        } font-extrabold text-[11px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm pt-0.5`}
                     >
-                        {loading ? "Vérification..." : "Vérifier"} <ArrowRight className="w-5 h-5" />
+                        {loading ? (
+                            <>Vérification... <Loader2 className="w-4 h-4 animate-spin" /></>
+                        ) : (
+                            <>Vérifier le jeton <ArrowRight className="w-4 h-4" /></>
+                        )}
                     </button>
                 </form>
 
-                {/* Section Renvoyer le code */}
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] md:text-[11px] font-bold uppercase tracking-wider">
-                    <p className="text-gray-400 text-center sm:text-left">
-                        Vous n'avez pas reçu le code ?
+                {/* Section Action alternative */}
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] md:text-[11px] font-extrabold uppercase tracking-widest">
+                    <p className="text-slate-400 text-center sm:text-left">
+                        Aucun jeton reçu ?
                     </p>
-                    <div className="flex items-center gap-3">
-                        <button type="button" className="text-[#9ADE7B] hover:text-[#89cf6a] flex items-center gap-1.5 transition-colors">
-                            Renvoyer le code
-                        </button>
-                    </div>
+                    <button type="button" className="text-slate-950 hover:underline transition-all font-black">
+                        Renvoyer un code
+                    </button>
                 </div>
             </div>
 
-            {/* 3. Footer */}
-            <footer className="mt-10 md:mt-14 text-center w-full px-4 mb-6">
-                <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-bold text-gray-400 uppercase mb-5">
-                    <Link to="/privacy" className="hover:text-gray-600 transition-colors">Police de confidentialité</Link>
-                    <Link to="/terms" className="hover:text-gray-600 transition-colors">Conditions d'utilisation</Link>
+            {/* ── 3. FOOTER UNIFORMISÉ ── */}
+            <footer className="mt-12 md:mt-16 text-center w-full px-4 mb-4">
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase mb-5 tracking-widest">
+                    <Link to="/privacy" className="hover:text-slate-900 transition-colors">Politique de confidentialité</Link>
+                    <Link to="/terms" className="hover:text-slate-900 transition-colors">Conditions d'utilisation</Link>
                 </div>
-                <p className="text-[9px] md:text-[10px] text-gray-400 leading-relaxed uppercase tracking-wider">
+                <p className="text-[9px] md:text-[10px] text-slate-400 leading-relaxed uppercase tracking-widest">
                     © 2026 VOLTANETWORK SERVICES.<br/>
-                    INFRASTRUCTURE DE SECURITE.
+                    CONTRÔLE DE SÉCURITÉ PÉRIPHÉRIQUE.
                 </p>
             </footer>
         </div>

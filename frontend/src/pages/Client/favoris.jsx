@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Heart, History, LogOut, Loader2,
-  ShoppingCart, Eye, HeartOff 
+  Eye, HeartOff 
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -72,71 +72,79 @@ export default function Favorites() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7F9] pt-10 pb-20">
+    <div className="min-h-screen bg-slate-50 pt-24 pb-20 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
-        {/* En-tête */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
-          <h1 className="text-5xl font-black tracking-tighter text-gray-900 flex items-center gap-4 uppercase">
-            MON PROFIL <span className="w-3 h-3 bg-[#9ADE7B] rounded-full"></span>
+        {/* --- HEADER UNIFORMISÉ --- */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 mb-12">
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 flex items-center gap-4">
+            Mon Profil <span className="w-2.5 h-2.5 bg-[#9ADE7B] rounded-full shadow-sm shadow-[#9ADE7B]/50"></span>
           </h1>
-          <p className="text-gray-500 font-medium mt-2 italic">Gérez vos produits favoris et vos paramètres.</p>
+          <p className="text-slate-500 text-sm font-medium">Gérez vos produits favoris et vos paramètres.</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-4 gap-8 items-start">
           
-          {/* SIDEBAR */}
-          <motion.aside initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-[0.5rem] p-6 shadow-sm border border-gray-100 space-y-2 sticky top-10">
-            <div className="flex items-center gap-3 p-4 mb-6 bg-[#F6F7F9] rounded-[0.5rem]">
-               <img src={logo} alt="Volta" className="w-8 h-8" />
-              <span className="text-[10px] font-black uppercase tracking-tighter leading-none text-gray-900">
+          {/* --- SIDEBAR UNIFORMISÉE --- */}
+          <motion.aside initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 space-y-1.5 lg:sticky lg:top-24">
+            <div className="flex items-center gap-3 p-4 mb-4 bg-slate-50 rounded-lg border border-slate-100">
+              <img src={logo} alt="Volta" className="w-6 h-6 object-contain" />
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-900 leading-tight">
                 Volta Network <br /> Services
               </span>
             </div>
 
-            <Link to="/profil" className="block"><SidebarItem icon={<User className="w-5 h-5" />} label="Informations" active={location.pathname === "/profil"} /></Link>
-            <Link to="/favoris" className="block"><SidebarItem icon={<Heart className="w-5 h-5" />} label="Favoris" active={location.pathname === "/favoris"} /></Link>
-            <Link to="/historique-commandes" className="block"><SidebarItem icon={<History className="w-5 h-5" />} label="Historique" active={location.pathname === "/historique-commandes"} /></Link>
+            <Link to="/profil" className="block">
+              <SidebarItem icon={<User size={16} />} label="Informations" active={location.pathname === "/profil"} />
+            </Link>
+            <Link to="/favoris" className="block">
+              <SidebarItem icon={<Heart size={16} />} label="Favoris" active={location.pathname === "/favoris"} />
+            </Link>
+            <Link to="/historique-commandes" className="block">
+              <SidebarItem icon={<History size={16} />} label="Historique" active={location.pathname === "/historique-commandes"} />
+            </Link>
 
-            <div className="pt-10">
-              <button 
-                onClick={handleLogout} 
-                className="w-full flex items-center gap-4 px-6 py-4 text-red-500 hover:bg-red-50 rounded-[0.5rem] transition-all font-bold text-xs uppercase tracking-widest text-left group"
-              >
-                <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Déconnexion
-              </button>
-            </div>
+            <button 
+              onClick={handleLogout} 
+              className="w-full flex items-center gap-4 px-5 py-3.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-all font-extrabold text-[10px] uppercase tracking-widest group text-left mt-8"
+            >
+              <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform" /> Déconnexion
+            </button>
           </motion.aside>
 
-          {/* CONTENU DES FAVORIS */}
-          <main className="lg:col-span-3 space-y-8">
-            <div>
-              <h2 className="text-4xl font-black tracking-tight text-gray-950 uppercase italic">Mes Favoris</h2>
-              <p className="text-gray-400 text-sm mt-2 max-w-lg font-medium">
+          {/* --- CONTENU DES FAVORIS --- */}
+          <main className="lg:col-span-3 space-y-6">
+            <div className="border-b border-slate-100 pb-5">
+              <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Mes Favoris</h2>
+              <p className="text-slate-500 text-xs mt-1 font-medium">
                 {favorites.length} produit(s) enregistré(s) pour vos futurs déploiements.
               </p>
             </div>
 
             {loading ? (
-              <div className="flex justify-center py-20"><Loader2 className="w-10 h-10 animate-spin text-[#9ADE7B]" /></div>
+              <div className="flex justify-center py-20">
+                <Loader2 className="w-10 h-10 animate-spin text-[#9ADE7B]" />
+              </div>
             ) : favorites.length > 0 ? (
-              <motion.div layout className="grid md:grid-cols-2 xl:grid-cols-3 gap-6 pt-6">
+              <motion.div layout className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <AnimatePresence>
-                    {favorites.map((product, index) => (
+                  {favorites.map((product, index) => (
                     <FavoriteCard 
-                        key={product.id_produit} 
-                        product={product} 
-                        index={index} 
-                        onRemove={() => toggleFavorite(product.id_produit)}
+                      key={product.id_produit} 
+                      product={product} 
+                      index={index} 
+                      onRemove={() => toggleFavorite(product.id_produit)}
                     />
-                    ))}
+                  ))}
                 </AnimatePresence>
               </motion.div>
             ) : (
-              <div className="bg-white p-20 rounded-[0.5rem] border-2 border-dashed border-gray-100 text-center flex flex-col items-center">
-                <Heart className="w-12 h-12 text-gray-100 mb-4" />
-                <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest mb-4">Aucun favori pour le moment.</p>
-                <Link to="/boutique" className="text-[#9ADE7B] font-black uppercase text-[11px] hover:underline transition-all">Explorer la boutique</Link>
+              <div className="bg-white p-16 md:p-20 rounded-xl border-2 border-dashed border-slate-200 text-center flex flex-col items-center shadow-sm">
+                <Heart className="w-12 h-12 text-slate-200 mb-4" />
+                <p className="text-slate-400 font-extrabold uppercase text-[10px] tracking-widest mb-5">Aucun favori pour le moment.</p>
+                <Link to="/boutique" className="inline-flex items-center bg-slate-900 hover:bg-black text-[#9ADE7B] font-extrabold px-6 py-3.5 rounded-lg text-[11px] uppercase tracking-widest transition-all shadow-md shadow-slate-900/5">
+                  Explorer la boutique
+                </Link>
               </div>
             )}
           </main>
@@ -146,11 +154,13 @@ export default function Favorites() {
   );
 }
 
-// --- SOUS-COMPOSANTS ---
+// --- SOUS-COMPOSANTS RE-STYLISÉS ---
 
 const SidebarItem = ({ icon, label, active = false }) => (
-  <div className={`w-full flex items-center gap-4 px-6 py-4 rounded-[0.5rem] transition-all font-bold text-xs uppercase tracking-widest ${
-    active ? 'bg-[#9ADE7B] text-[#1A4301] shadow-lg shadow-[#9ADE7B]/10' : 'text-gray-400 hover:bg-gray-50 hover:text-gray-600'
+  <div className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-lg transition-all font-extrabold text-[11px] uppercase tracking-wider cursor-pointer ${
+    active 
+      ? 'bg-[#9ADE7B] text-slate-900 shadow-md shadow-[#9ADE7B]/10' 
+      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-50'
   }`}>
     {icon}
     <span>{label}</span>
@@ -162,47 +172,49 @@ const FavoriteCard = ({ product, index, onRemove }) => (
     layout
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, scale: 0.8 }}
-    transition={{ delay: index * 0.05 }}
-    className="bg-white rounded-[0.5rem] overflow-hidden border border-gray-100 shadow-sm group hover:shadow-xl hover:border-[#9ADE7B]/30 transition-all duration-300"
+    exit={{ opacity: 0, scale: 0.95 }}
+    transition={{ delay: index * 0.04 }}
+    className="bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm group hover:shadow-xl hover:border-[#9ADE7B]/30 transition-all duration-300 flex flex-col h-full"
   >
-    <div className="relative h-48 overflow-hidden bg-gray-100">
+    <div className="relative h-48 overflow-hidden bg-slate-50 shrink-0 border-b border-slate-50">
       <img 
         src={product.url_image_principale} 
         alt={product.nom_produit} 
-        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+        className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500" 
       />
       <button 
         onClick={onRemove}
-        className="absolute top-4 right-4 w-10 h-10 bg-white rounded-[0.5rem] flex items-center justify-center shadow-md hover:bg-red-50 text-red-500 transition-all group/btn"
+        className="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-lg flex items-center justify-center shadow-md hover:bg-rose-50 text-slate-400 hover:text-rose-600 transition-all group/btn"
       >
-        <HeartOff className="w-5 h-5 group-hover/btn:scale-110" />
+        <HeartOff size={16} className="group-hover/btn:scale-105 transition-transform" />
       </button>
     </div>
 
-    <div className="p-6 space-y-4">
-      <div className="flex justify-between items-start">
-        <span className="text-[9px] font-black text-[#9ADE7B] uppercase tracking-[0.2em]">
-          {product.sous_categorie?.nom_sous_categorie || "MATÉRIEL"}
-        </span>
-        <span className="text-xs font-black text-gray-900">
-          {Number(product.prix_unitaire_produit).toLocaleString()} FCFA
-        </span>
-      </div>
-      
-      <div className="space-y-1">
-        <h3 className="font-bold text-sm text-gray-950 uppercase italic leading-tight min-h-[2.5rem] line-clamp-2">{product.nom_produit}</h3>
-        <p className="text-[10px] text-gray-400 leading-relaxed font-medium line-clamp-2">
-          {product.description_courte_produit}
-        </p>
+    <div className="p-5 flex flex-col flex-grow justify-between gap-4">
+      <div className="space-y-2">
+        <div className="flex justify-between items-center gap-2">
+          <span className="inline-block bg-[#9ADE7B]/15 text-slate-900 text-[9px] font-extrabold tracking-widest uppercase px-2 py-0.5 rounded-md">
+            {product.sous_categorie?.nom_sous_categorie || "MATÉRIEL"}
+          </span>
+          <span className="text-xs font-extrabold text-slate-900 whitespace-nowrap">
+            {Number(product.prix_unitaire_produit).toLocaleString()} FCFA
+          </span>
+        </div>
+        
+        <div className="space-y-1">
+          <h3 className="font-bold text-sm text-slate-900 tracking-tight line-clamp-1 group-hover:text-black transition-colors">{product.nom_produit}</h3>
+          <p className="text-xs text-slate-400 font-medium line-clamp-2 leading-relaxed">
+            {product.description_courte_produit}
+          </p>
+        </div>
       </div>
 
-      <div className="pt-2">
+      <div className="pt-1">
         <Link 
           to={`/produit/${product.id_produit}`}
-          className="w-full bg-transparent border border-gray-100 hover:border-[#9ADE7B] hover:text-black text-gray-400 font-bold py-3 rounded-[0.5rem] text-[10px] uppercase tracking-[0.15em] flex items-center justify-center gap-2 transition-all"
+          className="w-full bg-slate-50 hover:bg-slate-900 text-slate-600 hover:text-[#9ADE7B] border border-slate-200/60 hover:border-slate-900 font-extrabold py-3 rounded-lg text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
         >
-          <Eye className="w-3.5 h-3.5" /> Voir le produit
+          <Eye size={14} /> Voir le produit
         </Link>
       </div>
     </div>
