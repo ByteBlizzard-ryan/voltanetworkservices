@@ -18,6 +18,9 @@ export default function ProduitDetaille() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  // --- NOUVEL ÉTAT POUR LE LOADER DU FAVORI ---
+  const [favLoading, setFavLoading] = useState(false);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -76,21 +79,41 @@ export default function ProduitDetaille() {
     }, 650);
   };
 
+  // --- MODIFICATION DE LA GESTION DES FAVORIS ---
   const toggleFavorite = async () => {
     const token = localStorage.getItem('token');
+    
     if (!token) {
-      navigate('/login');
+      setFavLoading(true);
+      setTimeout(() => {
+        setFavLoading(false);
+        navigate('/login');
+      }, 600);
       return;
     }
+
+    setFavLoading(true);
 
     try {
       await axios.post('http://127.0.0.1:8000/api/favoris/toggle', 
         { id_produit: product.id_produit },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setIsFavorite(!isFavorite);
+      
+      // On applique le petit délai agréable avant de mettre à jour l'icône
+      setTimeout(() => {
+        setIsFavorite(!isFavorite);
+        setFavLoading(false);
+      }, 400);
+
     } catch (error) {
-      console.error("Erreur favoris:", error);
+      setFavLoading(false);
+      if (error.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else {
+        console.error("Erreur favoris:", error);
+      }
     }
   };
 
@@ -201,15 +224,21 @@ export default function ProduitDetaille() {
                 )}
               </button>
 
+              {/* MODIFICATION DU BOUTON FAVORIS AVEC ÉTAT DE CHARGEMENT */}
               <button 
                 onClick={toggleFavorite}
+                disabled={favLoading}
                 className={`w-14 h-14 rounded-xl flex items-center justify-center transition-all border ${
                   isFavorite 
                   ? 'bg-rose-50 border-rose-100 text-rose-500' 
                   : 'bg-slate-50 border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200'
-                }`}
+                } ${favLoading ? 'opacity-70' : 'active:scale-90'} cursor-pointer`}
               >
-                <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+                {favLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Heart className={`w-5 h-5 transition-all ${isFavorite ? 'fill-current' : ''}`} />
+                )}
               </button>
             </div>
           </div>

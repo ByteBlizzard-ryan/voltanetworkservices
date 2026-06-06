@@ -12,9 +12,18 @@ use App\Models\SousCategorie;
 use App\Models\Categorie;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\DashboardAdminController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\OtpController;
+
+Route::get('/ping', function () {
+    return response()->json(['message' => 'pong']);
+});
 
 Route::get('/admin/dashboard-stats', [DashboardAdminController::class, 'getStats']);
 
+use App\Http\Controllers\ContactController;
+
+Route::post('/contact', [ContactController::class, 'sendContactEmail']);
 /*
 |--------------------------------------------------------------------------
 | API Routes - VOLTA NETWORK
@@ -52,6 +61,8 @@ Route::get('/sous-categories', function () {
 Route::get('/categories', function () {
     return Categorie::all(); 
 });
+
+Route::get('/produits/best-sellers', [ProduitController::class, 'getBestSellers']);
 
 // Route pour la liste complète des produits
 Route::get('/produits', [ProduitController::class, 'index']);
@@ -133,3 +144,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/commandes/historique', [CommandeController::class, 'index']);
 
 });
+

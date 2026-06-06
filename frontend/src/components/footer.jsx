@@ -61,7 +61,6 @@ export default function Footer() {
           {/* Section 4 : Newsletter & Socials */}
           <div className="flex flex-col items-center md:items-start text-center md:text-left">
             <h4 className="text-gray-900 font-bold mb-6 uppercase tracking-widest text-xs">Suivez-nous</h4>
-            <h4 className="text-gray-900 font-bold mb-6 uppercase tracking-widest text-xs">Suivez-nous</h4>
   <div className="flex gap-4 mb-6">
     
     {/* 1. Ton icône Facebook personnalisée (Fichier local) */}

@@ -88,8 +88,17 @@ export default function Login() {
             }
             
         } catch (err) {
-            if (err.response && err.response.data) {
-                setError(err.response.data.message || "Une erreur est survenue lors de la connexion.");
+            // 🛠️ INTERCEPTION ET CORRECTION DU MESSAGE D'ERREUR
+            if (err.response && err.response.status === 401) {
+                // Si Laravel renvoie une erreur d'authentification (401 Unauthorized)
+                setError("Identifiant ou mot de passe incorrect.");
+            } else if (err.response && err.response.data && err.response.data.message) {
+                // Si c'est un autre message d'erreur de Laravel (ex: compte bloqué, validation...)
+                if (err.response.data.message.toLowerCase().includes("incorrect")) {
+                    setError("Identifiant ou mot de passe incorrect.");
+                } else {
+                    setError(err.response.data.message);
+                }
             } else {
                 setError("Impossible de joindre le serveur d'authentification.");
             }
@@ -124,7 +133,7 @@ export default function Login() {
                 </div>
 
                 {error && (
-                    <div className="mb-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-medium rounded-xl">
+                    <div className="mb-6 p-4 bg-rose-50 border border-rose-100 text-rose-600 text-xs font-semibold rounded-xl">
                         {error}
                     </div>
                 )}
@@ -132,7 +141,7 @@ export default function Login() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Champ Email */}
                     <div className="space-y-2">
-                        <label htmlFor="email" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="email" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Email
                         </label>
                         <div className="relative group">
@@ -146,7 +155,7 @@ export default function Login() {
 
                     {/* Champ Mot de passe */}
                     <div className="space-y-2">
-                        <label htmlFor="password" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="password" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Mot de passe
                         </label>
                         <div className="relative group">
@@ -176,7 +185,7 @@ export default function Login() {
                                 onChange={(e) => setRemember(e.target.checked)}
                                 className="w-4 h-4 rounded border-slate-300 text-[#9ADE7B] focus:ring-[#9ADE7B] focus:ring-offset-0 cursor-pointer transition-colors"
                             />
-                            <span className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-wider group-hover:text-slate-600 transition-colors">
+                            <span className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-wider group-hover:text-slate-600 transition-colors">
                                 Rester connecté
                             </span>
                         </label>
@@ -212,9 +221,13 @@ export default function Login() {
             {/* ── 3. FOOTER UNIFORMISÉ ── */}
             <footer className="mt-12 md:mt-16 text-center w-full px-4 mb-4">
                 <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase mb-5 tracking-widest">
-                    <Link to="/privacy" className="hover:text-slate-900 transition-colors">Politique de Confidentialité</Link>
-                    <Link to="/terms" className="hover:text-slate-900 transition-colors">Conditions d'utilisation</Link>
-                    <Link to="/support" className="hover:text-slate-900 transition-colors">Support</Link>
+                    {/* Redirige vers la racine du frontend (Acceuil) */}
+                    <Link to="/conditions-utilisation" className="hover:text-slate-900 transition-colors">Politique de Confidentialité</Link>
+                    
+                    {/* Redirige vers http://localhost:5173/politique-confidentialite */}
+                    <Link to="/politique-confidentialite" className="hover:text-slate-900 transition-colors">Conditions d'utilisation</Link>
+                    
+                    <Link to="/contact" className="hover:text-slate-900 transition-colors">Support</Link>
                 </div>
                 <p className="text-[9px] md:text-[10px] text-slate-400 leading-relaxed uppercase tracking-widest">
                     © 2026 VOLTANETWORK SERVICES.<br/>

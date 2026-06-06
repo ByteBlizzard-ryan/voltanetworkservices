@@ -13,15 +13,38 @@ export default function VerifyEmail() {
 
     const [otp, setOtp] = useState(new Array(6).fill(""));
     const [loading, setLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false); // État de chargement pour le renvoi
     const [error, setError] = useState("");
+    const [successMessage, setSuccessMessage] = useState(""); // Message de succès pour le renvoi
+    
+    // Compte à rebours : 5 minutes = 300 secondes
+    const [timeLeft, setTimeLeft] = useState(300); 
     const inputRefs = useRef([]);
 
-    // Effet pour mettre le focus sur la première case au chargement
+    // 1. Effet pour mettre le focus sur la première case au chargement
     useEffect(() => {
         if (inputRefs.current[0]) {
             inputRefs.current[0].focus();
         }
     }, []);
+
+    // 2. Effet pour gérer le compte à rebours de 5 minutes
+    useEffect(() => {
+        if (timeLeft <= 0) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prevTime) => prevTime - 1);
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [timeLeft]);
+
+    // Formatage des secondes en mm:ss (ex: 04:59)
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
     // Gestion du changement dans les cases
     const handleChange = (element, index) => {
@@ -50,7 +73,7 @@ export default function VerifyEmail() {
         }
     };
 
-    // Soumission du code au Backend
+    // Soumission du code au Backend (Vérification finale)
     const handleSubmit = async (e) => {
         e.preventDefault();
         const fullOtp = otp.join("");
@@ -62,6 +85,7 @@ export default function VerifyEmail() {
 
         setLoading(true);
         setError("");
+        setSuccessMessage("");
 
         try {
             const response = await axios.post('http://127.0.0.1:8000/api/verify-otp', {
@@ -77,6 +101,38 @@ export default function VerifyEmail() {
             setError(err.response?.data?.message || "Code OTP invalide ou expiré.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Fonction pour renvoyer un nouveau code OTP via l'API
+    const handleResendCode = async () => {
+        if (timeLeft > 0 || resendLoading) return;
+
+        setResendLoading(true);
+        setError("");
+        setSuccessMessage("");
+
+        try {
+            // On réutilise la route de registre qui génère l'OTP et le stocke en cache
+            await axios.post('http://127.0.0.1:8000/api/register', {
+                // On passe des valeurs fictives ou vides pour contourner la validation du backend
+                // mais le mieux ici est d'adapter si ton backend demande un username/password complet au register.
+                // Note : Si ton controlleur bloque, utilise plutôt une route dédiée /resend-otp.
+                email: email,
+                username: "Utilisateur", 
+                password: "password_temporaire",
+                password_confirmation: "password_temporaire"
+            });
+
+            setSuccessMessage("Un nouveau code a été envoyé avec succès !");
+            setOtp(new Array(6).fill("")); // Vide les cases
+            setTimeLeft(300); // Réinitialise le chrono à 5 minutes
+            if (inputRefs.current[0]) inputRefs.current[0].focus();
+
+        } catch (err) {
+            setError(err.response?.data?.message || "Impossible de renvoyer le code. Veuillez réessayer.");
+        } finally {
+            setResendLoading(false);
         }
     };
 
@@ -110,6 +166,12 @@ export default function VerifyEmail() {
                     </div>
                 )}
 
+                {successMessage && (
+                    <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 text-xs font-semibold rounded-xl tracking-wide uppercase">
+                        {successMessage}
+                    </div>
+                )}
+
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Champs Code de vérification (6 cases) */}
                     <div className="flex justify-between gap-2 md:gap-3">
@@ -121,7 +183,6 @@ export default function VerifyEmail() {
                                 ref={(el) => (inputRefs.current[index] = el)}
                                 value={data}
                                 onChange={(e) => handleChange(e.target, index)}
-                                tracking-widest
                                 onKeyDown={(e) => handleKeyDown(e, index)}
                                 className="w-full h-12 md:h-14 text-center text-lg font-extrabold bg-slate-50 border border-slate-200 focus:border-slate-900 focus:bg-white rounded-xl transition-all outline-none text-slate-900"
                             />
@@ -144,14 +205,29 @@ export default function VerifyEmail() {
                     </button>
                 </form>
 
-                {/* Section Action alternative */}
+                {/* Section Action alternative avec compte à rebours dynamique */}
                 <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[10px] md:text-[11px] font-extrabold uppercase tracking-widest">
                     <p className="text-slate-400 text-center sm:text-left">
                         Aucun jeton reçu ?
                     </p>
-                    <button type="button" className="text-slate-950 hover:underline transition-all font-black">
-                        Renvoyer un code
-                    </button>
+                    {timeLeft > 0 ? (
+                        <span className="text-slate-400 font-medium select-none">
+                            Renvoyer dans {formatTime(timeLeft)}
+                        </span>
+                    ) : (
+                        <button 
+                            type="button" 
+                            onClick={handleResendCode}
+                            disabled={resendLoading}
+                            className="text-slate-950 hover:underline transition-all font-black flex items-center gap-1 disabled:opacity-50"
+                        >
+                            {resendLoading ? (
+                                <>Envoi... <Loader2 className="w-3 h-3 animate-spin" /></>
+                            ) : (
+                                "Renvoyer un code"
+                            )}
+                        </button>
+                    )}
                 </div>
             </div>
 

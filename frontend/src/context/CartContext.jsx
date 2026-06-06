@@ -9,6 +9,9 @@ export const CartProvider = ({ children }) => {
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
+  // ── AJOUT DE L'ÉTAT DE RECHERCHE GLOBALE POUR LA BOUTIQUE ──
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Synchronisation automatique du localStorage à chaque modification du panier
   useEffect(() => {
     localStorage.setItem('volta_cart', JSON.stringify(cart));
@@ -66,9 +69,12 @@ export const CartProvider = ({ children }) => {
       addToCart, 
       updateQuantity, 
       removeFromCart, 
-      clearCart, // Exportation de la fonction
+      clearCart, 
       cartCount, 
-      cartTotal 
+      cartTotal,
+      // ── EXPORTATION DE LA RECHERCHE ──
+      searchQuery,
+      setSearchQuery
     }}>
       {children}
     </CartContext.Provider>
@@ -84,6 +90,8 @@ export const useCart = () => {
         cart: [], 
         cartTotal: 0, 
         cartCount: 0, 
+        searchQuery: '', // Sécurité pour la recherche
+        setSearchQuery: () => {}, // Sécurité pour la recherche
         addToCart: () => {}, 
         clearCart: () => {},
         updateQuantity: () => {},

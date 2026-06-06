@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Heart, SlidersHorizontal, Loader2, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Heart, SlidersHorizontal, Loader2, AlertCircle, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../context/CartContext'; 
 
 export default function Boutique() {
-  // --- ÉTATS ---
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
@@ -18,17 +17,16 @@ export default function Boutique() {
   const [isCategoryOpen, setIsCategoryOpen] = useState(false); 
   const [favLoading, setFavLoading] = useState(null); 
 
-  const { addToCart } = useCart();
+  // ── RÉCUPÉRATION DE LA RECHERCHE EN DIRECT VIA LE CONTEXTE ──
+  const { addToCart, searchQuery, setSearchQuery } = useCart();
   const navigate = useNavigate();
 
-  // --- CHARGEMENT DES DONNÉES ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // 1. Charger d'abord les données publiques
         const [prodRes, catRes, subRes] = await Promise.all([
           axios.get('http://127.0.0.1:8000/api/produits'),
           axios.get('http://127.0.0.1:8000/api/categories'),
@@ -39,7 +37,6 @@ export default function Boutique() {
         setCategories(catRes.data);
         setSubCategories(subRes.data);
 
-        // 2. Charger les favoris séparément
         const token = localStorage.getItem('token');
         if (token) {
           try {
@@ -65,10 +62,81 @@ export default function Boutique() {
     fetchData();
   }, []);
 
-  // --- GESTION DES FAVORIS ---
+  // ── UTILITAIRE : SUPPRIME LES ACCENTS D'UNE CHAINE ──
+  const stripAccents = (str) => {
+    if (!str) return "";
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  };
+
+  // ── FONCTION DE SURLIGNAGE EN VERT (INSENSIBLE CASSE & ACCENTS) ──
+  const highlightText = (text, highlight) => {
+    if (!highlight || typeof highlight !== 'string' || !highlight.trim()) {
+      return <span>{text}</span>;
+    }
+    
+    // Échapper les caractères spéciaux de la recherche
+    const cleanHighlight = stripAccents(highlight).toLowerCase();
+    const escapedHighlight = cleanHighlight.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    
+    // On crée un tableau avec chaque caractère du texte d'origine
+    const textChars = text.split("");
+    const normalizedText = stripAccents(text).toLowerCase();
+    
+    const parts = [];
+    let lastIndex = 0;
+    
+    // Recherche globale de toutes les occurrences des index correspondants
+    const regex = new RegExp(escapedHighlight, 'g');
+    let match;
+    
+    while ((match = regex.exec(normalizedText)) !== null) {
+      const matchIndex = match.index;
+      
+      // Ajouter la partie de texte avant la correspondance
+      if (matchIndex > lastIndex) {
+        parts.push({
+          text: textChars.slice(lastIndex, matchIndex).join(""),
+          isMatch: false
+        });
+      }
+      
+      // Ajouter la partie correspondante (en gardant les accents d'origine !)
+      parts.push({
+        text: textChars.slice(matchIndex, matchIndex + cleanHighlight.length).join(""),
+        isMatch: true
+      });
+      
+      lastIndex = matchIndex + cleanHighlight.length;
+    }
+    
+    // Ajouter le reste du texte s'il y en a
+    if (lastIndex < textChars.length) {
+      parts.push({
+        text: textChars.slice(lastIndex).join(""),
+        isMatch: false
+      });
+    }
+
+    // Si aucune correspondance réelle n'a été mappée structurellement, on rend le texte brut
+    if (parts.length === 0) return <span>{text}</span>;
+
+    return (
+      <span>
+        {parts.map((part, index) => 
+          part.isMatch ? (
+            <mark key={index} className="bg-[#9ADE7B]/30 text-[#1A4301] px-0.5 rounded font-extrabold">
+              {part.text}
+            </mark>
+          ) : (
+            part.text
+          )
+        )}
+      </span>
+    );
+  };
+
   const toggleFavorite = async (productId) => {
     const token = localStorage.getItem('token');
-    
     if (!token) {
       setFavLoading(productId);
       setTimeout(() => {
@@ -79,7 +147,6 @@ export default function Boutique() {
     }
 
     setFavLoading(productId);
-
     try {
       const res = await axios.post(
         'http://127.0.0.1:8000/api/favoris/toggle', 
@@ -107,7 +174,6 @@ export default function Boutique() {
     }
   };
 
-  // --- LOGIQUE DE CALCUL ET FILTRAGE ---
   const getTotalProducts = () => products.length;
 
   const getCountByCategory = (catId) => {
@@ -121,15 +187,22 @@ export default function Boutique() {
     return products.filter(p => p.id_sous_cat_fk === subCatId).length;
   };
 
-  const filteredProducts = selectedSubCatId 
-    ? products.filter(p => p.id_sous_cat_fk === selectedSubCatId)
-    : products;
+  // ── FILTRAGE EN TEMPS RÉEL (SANS ACCENT & SANS CASSE) ──
+  const filteredProducts = products.filter(p => {
+    const matchesSubCategory = selectedSubCatId ? p.id_sous_cat_fk === selectedSubCatId : true;
+    
+    if (!searchQuery) return matchesSubCategory;
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('fr-FR').format(price) + " FCFA";
-  };
+    const cleanQuery = stripAccents(searchQuery).toLowerCase();
+    const cleanName = stripAccents(p.nom_produit).toLowerCase();
+    const cleanAbout = p.apropos ? stripAccents(p.apropos).toLowerCase() : "";
 
-  // --- RENDU : ÉTATS DE CHARGEMENT ET ERREUR ---
+    const matchesSearch = cleanName.includes(cleanQuery) || cleanAbout.includes(cleanQuery);
+    return matchesSubCategory && matchesSearch;
+  });
+
+  const formatPrice = (price) => new Intl.NumberFormat('fr-FR').format(price) + " FCFA";
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white font-sans">
@@ -145,10 +218,7 @@ export default function Boutique() {
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
         <h2 className="text-xl font-bold text-slate-900 mb-2">Oups ! Une erreur est survenue</h2>
         <p className="text-sm text-slate-500 mb-6">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] px-8 py-3 rounded-xl font-bold uppercase text-xs transition-colors shadow-lg cursor-pointer"
-        >
+        <button onClick={() => window.location.reload()} className="bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] px-8 py-3 rounded-xl font-bold uppercase text-xs transition-colors shadow-lg cursor-pointer">
           Réessayer
         </button>
       </div>
@@ -221,12 +291,24 @@ export default function Boutique() {
             <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 mb-4 text-center md:text-left">
               Inventaire de <span className="text-[#9ADE7B]">Sécurité</span>
             </h1>
+
+            {searchQuery && (
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-1.5 w-fit mt-2 mx-auto md:mx-0 animate-in fade-in duration-200">
+                <span className="text-xs text-slate-500 font-medium">Recherche en cours : <strong className="text-slate-800">"{searchQuery}"</strong></span>
+                <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600 transition-colors p-0.5">
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.length === 0 ? (
-              <div className="col-span-full py-20 text-center text-slate-400 italic text-sm">
-                Aucun produit trouvé dans cette catégorie.
+              <div className="col-span-full py-20 text-center text-slate-400 italic text-sm flex flex-col items-center justify-center gap-2">
+                Aucun produit trouvé pour "{searchQuery}".
+                <button onClick={() => setSearchQuery('')} className="text-[#9ADE7B] font-bold underline not-italic text-xs mt-2 cursor-pointer">
+                  Effacer la recherche
+                </button>
               </div>
             ) : (
               filteredProducts.map((product) => (
@@ -247,9 +329,12 @@ export default function Boutique() {
                         <span className="inline-block bg-[#9ADE7B]/20 text-slate-900 text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-md mb-2">
                           {product.sous_categorie?.nom_sous_categorie || "Matériel"}
                         </span>
+                        
+                        {/* ── LE NOM SURLIGNÉ SUPPORTE DÉSORMAIS TOUT SANS PLANTER ── */}
                         <h3 className="text-xl font-bold text-slate-900 tracking-tight line-clamp-1 group-hover:text-[#9ADE7B] transition-colors">
-                          {product.nom_produit}
+                          {highlightText(product.nom_produit, searchQuery)}
                         </h3>
+                        
                         <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 mt-2">
                           {product.apropos}
                         </p>
@@ -283,11 +368,7 @@ export default function Boutique() {
                       {favLoading === product.id_produit ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Heart 
-                          className={`w-4 h-4 transition-all ${
-                            favorites.includes(product.id_produit) ? 'fill-current' : ''
-                          }`} 
-                        />
+                        <Heart className={`w-4 h-4 transition-all ${favorites.includes(product.id_produit) ? 'fill-current' : ''}`} />
                       )}
                     </button>
                   </div>

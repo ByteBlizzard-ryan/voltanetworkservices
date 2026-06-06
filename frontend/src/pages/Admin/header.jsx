@@ -143,10 +143,7 @@ export default function AdminSidebar() {
           className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-all select-none box-border ml-4"
         >
           <div className="flex flex-col text-right hidden sm:flex font-sans">
-            <span className="text-xs font-bold text-slate-800 leading-tight">Nom et prénom</span>
             <span className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-0.5">
-              <span className="w-1.5 h-1.5 bg-[#9ADE7B] rounded-full shadow-xs" />
-              En ligne
             </span>
           </div>
           <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors shadow-sm">

@@ -25,7 +25,7 @@ export default function About() {
     <div className="min-h-screen bg-white font-sans text-slate-900 overflow-x-hidden">
       
       {/* --- HERO SECTION --- */}
-      <section className="pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+      <section className="pt-12 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -163,11 +163,6 @@ export default function About() {
               <span className="text-[#D4AF37]">pour tous vos projets industriels.</span>
             </h2>
             
-            <div className="pt-6 flex justify-center">
-              <div className="flex items-center gap-3 bg-white/5 border border-white/10 hover:border-white/20 text-white font-bold py-3.5 px-8 rounded-xl text-xs tracking-wider uppercase transition-all duration-300">
-                Prêt pour la prochaine étape ? <ArrowRight className="w-4 h-4 text-[#9ADE7B]" />
-              </div>
-            </div>
           </div>
           
           {/* Formes géométriques décoratives d'ambiance */}

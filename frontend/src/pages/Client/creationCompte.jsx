@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, ArrowRight, User, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, User, Loader2, AlertCircle, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import logo from '../../assets/logo.svg';
@@ -7,14 +7,16 @@ import logo from '../../assets/logo.svg';
 export default function Register() {
     const navigate = useNavigate();
     
-    // États pour gérer le chargement et les erreurs de validation
+    // États pour gérer le chargement, les erreurs de validation et la pop-up globale
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [globalError, setGlobalError] = useState('');
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrors({});
+        setGlobalError('');
 
         // Récupération des données du formulaire
         const formData = {
@@ -34,11 +36,17 @@ export default function Register() {
             });
 
         } catch (err) {
-            // Affichage des erreurs renvoyées par Laravel (ex: email déjà utilisé)
+            // Interception et affichage des erreurs renvoyées par Laravel en Français
             if (err.response && err.response.data.errors) {
-                setErrors(err.response.data.errors);
+                const apiErrors = err.response.data.errors;
+                setErrors(apiErrors);
+                
+                // Si l'erreur concerne l'email déjà pris, on l'envoie UNIQUEMENT dans la Pop-up globale
+                if (apiErrors.email) {
+                    setGlobalError(apiErrors.email[0]);
+                }
             } else {
-                alert("Erreur de connexion avec le serveur.");
+                setGlobalError("Échec de la connexion avec l'infrastructure Volta Network.");
             }
         } finally {
             setLoading(false);
@@ -57,8 +65,26 @@ export default function Register() {
             </div>
 
             {/* ── 2. CARTE DE CRÉATION DE COMPTE ── */}
-            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-sm w-full max-w-md border border-slate-100">
+            <div className="bg-white p-6 md:p-10 rounded-2xl shadow-sm w-full max-w-md border border-slate-100 relative">
                 
+                {/* 🚨 POP-UP D'ALERTE GLOBALE UNIQUE */}
+                {globalError && (
+                    <div className="mb-6 flex items-start gap-3 bg-rose-50 border border-rose-100 rounded-xl p-3.5 text-rose-700 animate-fadeIn">
+                        <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="text-[10px] font-extrabold uppercase tracking-wider">Erreur de Sécurité</p>
+                            <p className="text-xs font-medium mt-0.5">{globalError}</p>
+                        </div>
+                        <button 
+                            type="button" 
+                            onClick={() => setGlobalError('')}
+                            className="text-rose-400 hover:text-rose-700 transition-colors p-0.5"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row justify-between items-center sm:items-start mb-8 gap-4">
                     <div className="text-center sm:text-left">
                         <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Créer un compte</h1>
@@ -66,14 +92,14 @@ export default function Register() {
                     </div>
                     
                     <div className="flex items-center gap-2 text-[9px] font-extrabold text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
-                        Live Security <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+                        Live Security <span className="w-1.5 h-1.5 bg-[#9ADE7B] rounded-full animate-pulse shadow-[0_0_8px_rgba(154,222,123,0.5)]"></span>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Champ Nom d'utilisateur */}
                     <div className="space-y-1.5">
-                        <label htmlFor="username" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="username" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Nom d'utilisateur
                         </label>
                         <div className="relative group">
@@ -92,7 +118,7 @@ export default function Register() {
 
                     {/* Champ Email */}
                     <div className="space-y-1.5">
-                        <label htmlFor="email" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="email" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Email
                         </label>
                         <div className="relative group">
@@ -102,16 +128,11 @@ export default function Register() {
                                 className="w-full bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-slate-900 focus:bg-white rounded-xl py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 transition-all outline-none"
                             />
                         </div>
-                        {errors.email && (
-                            <p className="text-rose-500 text-[10px] font-semibold mt-1 ml-1 tracking-wide uppercase">
-                                {errors.email[0]}
-                            </p>
-                        )}
                     </div>
 
                     {/* Champ Mot de passe */}
                     <div className="space-y-1.5">
-                        <label htmlFor="password" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="password" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Mot de passe
                         </label>
                         <div className="relative group">
@@ -130,7 +151,7 @@ export default function Register() {
 
                     {/* Champ Confirmation */}
                     <div className="space-y-1.5">
-                        <label htmlFor="password_confirmation" className="text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase tracking-widest ml-1">
+                        <label htmlFor="password_confirmation" className="text-[10px] md:text-[11px] font-extrabold text-slate-900 uppercase tracking-widest ml-1">
                             Confirmation
                         </label>
                         <div className="relative group">
@@ -167,17 +188,22 @@ export default function Register() {
             </div>
 
             {/* ── 3. FOOTER UNIFORMISÉ ── */}
-            <footer className="mt-12 md:mt-16 text-center w-full px-4 mb-4">
-                <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase mb-5 tracking-widest">
-                    <Link to="/privacy" className="hover:text-slate-900 transition-colors">Politique de Confidentialité</Link>
-                    <Link to="/terms" className="hover:text-slate-900 transition-colors">Conditions d'utilisation</Link>
-                    <Link to="/support" className="hover:text-slate-900 transition-colors">Support</Link>
-                </div>
-                <p className="text-[9px] md:text-[10px] text-slate-400 leading-relaxed uppercase tracking-widest">
-                    © 2026 VOLTANETWORK SERVICES.<br/>
-                    INFRASTRUCTURE DE SÉCURITÉ ET CONTRÔLE.
-                </p>
-            </footer>
+                <footer className="mt-12 md:mt-16 text-center w-full px-4 mb-4">
+                    <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-[10px] md:text-[11px] font-extrabold text-slate-400 uppercase mb-5 tracking-widest">
+                        {/* Redirige vers la racine du frontend (Acceuil) */}
+                        <Link to="/conditions-utilisation" className="hover:text-slate-900 transition-colors">Politique de Confidentialité</Link>
+                        
+                        {/* Redirige vers http://localhost:5173/politique-confidentialite */}
+                        <Link to="/politique-confidentialite" className="hover:text-slate-900 transition-colors">Conditions d'utilisation</Link>
+                        
+                        <Link to="/contact" className="hover:text-slate-900 transition-colors">Support</Link>
+                    </div>
+                    <p className="text-[9px] md:text-[10px] text-slate-400 leading-relaxed uppercase tracking-widest">
+                        © 2026 VOLTANETWORK SERVICES.<br/>
+                        INFRASTRUCTURE DE SÉCURITÉ ET CONTRÔLE.
+                    </p>
+                </footer>
+        
         </div>
     );
 }

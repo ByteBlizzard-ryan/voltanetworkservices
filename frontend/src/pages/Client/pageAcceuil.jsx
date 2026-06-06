@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Shield,
   Server,
@@ -8,80 +8,18 @@ import {
   Award,
   CheckCircle2,
   ArrowRight,
+  ArrowLeft,
   Zap,
   Wifi,
   Cpu,
   ShoppingCart,
   MessageSquare,
+  Loader2,
 } from 'lucide-react';
+import axios from 'axios';
 import imageAcceuil1 from '../../images/pageAcceuil1.png';
-import imageAcceuil2 from '../../images/pageAcceuil2.png';
-import imageAcceuil3 from '../../images/pageAcceuil3.png';
-import ProductGrid from '../../components/ProductGrid';
+import ProductSlider from '../../components/BestSellersSlider';
 import { Link } from 'react-router-dom';
-
-const mesProduits = [
-  {
-    id: 1,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-  {
-    id: 2,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-  {
-    id: 3,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-  {
-    id: 4,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-  {
-    id: 5,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-  {
-    id: 6,
-    name: 'Caméra Sentinelle X1',
-    category: 'Surveillance',
-    price: '85.000 FCFA',
-    desc: 'Vision nocturne ultra-précise et détection thermique intégrée.',
-    image:
-      'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
-    badge: 'Populaire',
-  },
-];
 
 // Animations réutilisables
 const fadeInUp = {
@@ -95,12 +33,63 @@ const staggerContainer = {
 };
 
 export default function Home() {
+  const [bestSellers, setBestSellers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const itemsPerPage = 6;
+
+  // Récupération des meilleures ventes depuis l'API Laravel
+  useEffect(() => {
+    const fetchBestSellers = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/produits/best-sellers');
+        
+        // Adaptation du format de ton modèle BDD vers le format attendu par ton composant ProductGrid
+        const formattedProducts = response.data.map((prod, index) => ({
+          id: prod.id_produit,
+          name: prod.nom_produit,
+          category: prod.sous_categorie?.nom_sous_categorie || 'Équipement',
+          price: typeof prod.prix_unitaire_produit === 'number' 
+            ? `${prod.prix_unitaire_produit.toLocaleString('fr-FR')} FCFA`
+            : prod.prix_unitaire_produit,
+          desc: prod.description_produit || prod.apropos,
+          image: prod.url_image_principale || 'https://images.unsplash.com/photo-1557597774-9d273605dfa9?auto=format&fit=crop&q=80&w=800',
+          badge: index < 3 ? 'Top Vente' : 'Populaire',
+        }));
+
+        setBestSellers(formattedProducts);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des best-sellers :", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBestSellers();
+  }, []);
+
+  // Fonctions de navigation pour les flèches directionnelles
+  const handleNext = () => {
+    if (currentIndex + itemsPerPage < bestSellers.length) {
+      setCurrentIndex((prev) => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
+  // Extraction des 6 produits à afficher selon l'index actuel
+  const visibleProducts = bestSellers.slice(currentIndex, currentIndex + itemsPerPage);
+
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
       
       {/* ========== HERO ========== */}
       <section className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-24 md:py-32 grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:py-32 grid md:grid-cols-2 gap-12 items-center">
           <motion.div
             initial="hidden"
             animate="visible"
@@ -117,15 +106,13 @@ export default function Home() {
               variants={fadeInUp}
               className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight"
             >
-              Protégez vos <span className="text-[#9ADE7B]">actifs</span> avec une sécurité
-              infaillible.
+              Protégez vos <span className="text-[#9ADE7B]">actifs</span> avec une sécurité infaillible.
             </motion.h1>
             <motion.p
               variants={fadeInUp}
               className="text-slate-300 text-lg max-w-xl"
             >
-              Solutions sur mesure alliant <strong className="text-white">technologie de pointe</strong> et
-              expertise humaine pour garantir la continuité et la sûreté de vos opérations.
+              Solutions sur mesure alliant <strong className="text-white">technologie de pointe</strong> et expertise humaine pour garantir la continuité et la sûreté de vos opérations.
             </motion.p>
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -155,7 +142,6 @@ export default function Home() {
               alt="Sécurité avancée"
               className="relative z-10 w-full rounded-3xl shadow-2xl"
             />
-            {/* Badge discret */}
             <motion.div
               animate={{ y: [0, -8, 0] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -265,7 +251,7 @@ export default function Home() {
               {
                 icon: <Wifi className="w-10 h-10" />,
                 title: 'Objets connectés (IoT)',
-                desc: 'Sécurisation des infrastructures connectées, capteurs intelligents.',
+                desc: 'Sécurisation des infrastructures connectées, capteurs internes.',
                 color: 'border-l-slate-400',
               },
             ].map((item, i) => (
@@ -292,35 +278,69 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ========== SECTION PRODUITS ========== */}
+      {/* ========== SECTION PRODUITS (BEST SELLERS DE LA BDD) ========== */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <span className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]">
-              Équipements recommandés
-            </span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-4">
-              Technologie de surveillance avancée
-            </h2>
-            <p className="text-slate-600 max-w-2xl mx-auto mt-4">
-              Découvrez notre gamme de produits conçus pour répondre aux environnements les plus exigeants.
-            </p>
-          </motion.div>
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
+            <div className="text-center md:text-left">
+              <span className="text-[#9ADE7B] font-extrabold text-xs uppercase tracking-[0.3em]">
+                Équipements les plus vendus
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mt-2">
+                Nos Best-Sellers Volta Network
+              </h2>
+            </div>
+            
+            {/* Flèches de navigation directionnelles */}
+            {!loading && bestSellers.length > itemsPerPage && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentIndex === 0}
+                  className="p-3 bg-slate-100 hover:bg-slate-900 text-slate-900 hover:text-white rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={currentIndex + itemsPerPage >= bestSellers.length}
+                  className="p-3 bg-slate-100 hover:bg-slate-900 text-slate-900 hover:text-white rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </div>
 
-          <ProductGrid products={mesProduits} />
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3 text-slate-400">
+              <Loader2 className="w-10 h-10 animate-spin text-[#9ADE7B]" />
+              <p className="text-xs font-bold tracking-widest uppercase">Analyse de popularité en cours...</p>
+            </div>
+          ) : bestSellers.length > 0 ? (
+            <div className="relative overflow-hidden px-1">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIndex}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <ProductSlider products={visibleProducts} />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          ) : (
+            <p className="text-center text-slate-400 py-12">Aucun équipement disponible pour le moment.</p>
+          )}
           
           <div className="text-center mt-12">
             <Link
               to="/boutique"
               className="inline-flex items-center bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] font-bold px-8 py-4 rounded-lg transition-all gap-2 shadow-lg"
             >
-              Voir tous les produits <ShoppingCart className="w-5 h-5" />
+              Voir la boutique complète <ShoppingCart className="w-5 h-5" />
             </Link>
           </div>
         </div>

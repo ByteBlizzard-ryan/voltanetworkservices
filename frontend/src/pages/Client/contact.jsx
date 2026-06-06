@@ -1,37 +1,55 @@
 import React, { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, Share2, Globe, Network, Loader2, CheckCircle } from 'lucide-react';
-import emailjs from '@emailjs/browser';
 
 export default function Contact() {
   const formRef = useRef();
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
-  const sendEmail = (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
-    loading(true);
+    setLoading(true);
 
-    const SERVICE_ID = "service_yx6dh3g";
-    const TEMPLATE_ID = "template_mdhzwue";
-    const PUBLIC_KEY = "gZpkNd-wxrIRlhPNv";
+    // Récupération des données du formulaire
+    const formData = new FormData(formRef.current);
+    const payload = {
+      from_name: formData.get('from_name'),
+      reply_to: formData.get('reply_to'),
+      phone: formData.get('phone'),
+      message: formData.get('message'),
+    };
 
-    emailjs.sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, PUBLIC_KEY)
-      .then(() => {
-          setSent(true);
-          setLoading(false);
-          formRef.current.reset();
-          setTimeout(() => setSent(false), 5000);
-      })
-      .catch((error) => {
-          console.error("Erreur EmailJS:", error);
-          alert("Une erreur est survenue lors de l'envoi du message.");
-          setLoading(false);
+    try {
+      // 🚀 Envoi des données vers ton API Laravel
+      const response = await fetch('http://127.0.0.1:8000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
+
+      const result = await response.json();
+
+      if (response.ok || result.success) {
+        setSent(true);
+        formRef.current.reset();
+        setTimeout(() => setSent(false), 5000);
+      } else {
+        alert(result.message || "Une erreur est survenue lors de l'envoi du message.");
+      }
+    } catch (error) {
+      console.error("Erreur réseau Laravel:", error);
+      alert("Impossible de contacter le serveur backend.");
+    } finally {
+      setLoading(false);
+    }
   };
   
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-24 font-sans text-slate-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 pt-12 pb-24 font-sans text-slate-900 overflow-x-hidden">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         {/* --- HEADER --- */}
@@ -84,22 +102,22 @@ export default function Contact() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Nom Complet</label>
-                    <input name="from_name" required type="text" placeholder="Jean Dupont" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
+                    <input name="from_name" required type="text" placeholder="Jean Dupont" className="w-full bg-slate-50 border border-slate-200 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white focus:border-[#9ADE7B] outline-none transition-all rounded-xl text-sm font-medium" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Email Professionnel</label>
-                    <input name="reply_to" required type="email" placeholder="jean@entreprise.com" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
+                    <input name="reply_to" required type="email" placeholder="jean@entreprise.com" className="w-full bg-slate-50 border border-slate-200 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white focus:border-[#9ADE7B] outline-none transition-all rounded-xl text-sm font-medium" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Téléphone</label>
-                  <input name="phone" type="text" placeholder="+237 6 00 00 00 00" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all rounded-xl text-sm" />
+                  <input name="phone" type="text" placeholder="+237 6 00 00 00 00" className="w-full bg-slate-50 border border-slate-200 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white focus:border-[#9ADE7B] outline-none transition-all rounded-xl text-sm font-medium" />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Message</label>
-                  <textarea name="message" required rows="6" placeholder="Comment pouvons-nous vous aider ?" className="w-full bg-slate-50 border-0 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white outline-none transition-all resize-none rounded-xl text-sm"></textarea>
+                  <textarea name="message" required rows="6" placeholder="Comment pouvons-nous vous aider ?" className="w-full bg-slate-50 border border-slate-200 py-4 px-6 focus:ring-2 focus:ring-[#9ADE7B]/40 focus:bg-white focus:border-[#9ADE7B] outline-none transition-all resize-none rounded-xl text-sm font-medium"></textarea>
                 </div>
 
                 <motion.button 

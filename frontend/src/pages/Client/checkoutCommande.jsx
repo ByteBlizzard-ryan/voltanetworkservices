@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MessageSquare, Mail, ArrowRight, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,9 +8,12 @@ export default function Checkout() {
     const { cart, cartTotal, clearCart } = useCart();
     const navigate = useNavigate();
     
+    // Référence pour bloquer instantanément le double-clic JavaScript
+    const isSubmitting = useRef(false);
+    
     // État du formulaire
     const [loading, setLoading] = useState(false);
-    const [method, setMethod] = useState('WHATSAPP'); // WHATSAPP ou FORMULAIRE (Mail)
+    const [method, setMethod] = useState('WHATSAPP'); // WHATSAPP ou FORMULAIRE
     const [formData, setFormData] = useState({
         nom: '',
         prenom: '',
@@ -32,13 +35,24 @@ export default function Checkout() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleFinalize = async () => {
+    const handleFinalize = async (e) => {
+        // 1. Bloque IMMEDIATEMENT la soumission native du navigateur (évite le double appel sans initiateur)
+        if (e && typeof e.preventDefault === 'function') {
+            e.preventDefault();
+        }
+
+        // 2. Bloque le double-clic au niveau du code JavaScript
+        if (isSubmitting.current) return;
+
         if (!formData.nom || !formData.telephone) {
             alert("Veuillez remplir au moins le nom et le téléphone.");
             return;
         }
 
+        // 3. Activation des verrous
+        isSubmitting.current = true;
         setLoading(true);
+        
         const token = localStorage.getItem('token');
         
         const payload = {
@@ -65,8 +79,33 @@ export default function Checkout() {
             const result = await response.json();
 
             if (result.success || response.ok) {
+                
+                // ─── LOGIQUE DE REDIRECTION WHATSAPP VIA CONFIG ENV ───
                 if (method === 'WHATSAPP') {
-                    // Logique WhatsApp actuelle
+                    const numeroEntreprise = import.meta.env.VITE_WHATSAPP_NUMBER;
+                    
+                    if (!numeroEntreprise) {
+                        console.error("Erreur : La variable VITE_WHATSAPP_NUMBER n'est pas définie dans ton fichier .env");
+                        alert("Le système de redirection WhatsApp rencontre un problème de configuration technique.");
+                        setLoading(false);
+                        isSubmitting.current = false; // Relâche le verrou si configuration absente
+                        return;
+                    }
+                    
+                    let messageWhatsApp = `*VOLTA NETWORK - NOUVELLE COMMANDE*\n\n`;
+                    messageWhatsApp += `*Client :* ${formData.prenom} ${formData.nom}\n`;
+                    messageWhatsApp += `*Téléphone :* ${formData.telephone}\n`;
+                    if(formData.adresse) messageWhatsApp += `*Adresse :* ${formData.adresse}\n`;
+                    messageWhatsApp += `\n*DÉTAILS DU PANIER :*\n`;
+                    
+                    cart.forEach(item => {
+                        messageWhatsApp += `- ${item.nom_produit} (x${item.quantity}) : ${(item.prix_unitaire_produit * item.quantity).toLocaleString()} FCFA\n`;
+                    });
+                    
+                    messageWhatsApp += `\n*TOTAL NET :* ${cartTotal.toLocaleString()} FCFA`;
+                    
+                    const urlWhatsApp = `https://wa.me/${numeroEntreprise}?text=${encodeURIComponent(messageWhatsApp)}`;
+                    window.open(urlWhatsApp, '_blank');
                 }
                 
                 if (typeof clearCart === 'function') {
@@ -78,6 +117,9 @@ export default function Checkout() {
                 }, 500);
 
             } else {
+                // Erreur serveur : on réouvre le verrou pour que le client puisse corriger et renvoyer
+                isSubmitting.current = false;
+                
                 if (response.status === 401) {
                     alert("Votre session a expiré. Veuillez vous reconnecter.");
                     navigate('/login');
@@ -86,6 +128,8 @@ export default function Checkout() {
                 }
             }
         } catch (error) {
+            // Erreur réseau : on réouvre le verrou
+            isSubmitting.current = false;
             console.error("Erreur réseau:", error);
             alert("Impossible de contacter le serveur.");
         } finally {
@@ -143,15 +187,16 @@ export default function Checkout() {
                             
                             <div className="grid md:grid-cols-2 gap-4">
                                 <button 
+                                    type="button"
                                     onClick={() => setMethod('WHATSAPP')}
-                                    className={`flex items-center gap-4 p-5 rounded-lg text-left transition-all border-2 ${
+                                    className={`flex items-center gap-4 p-5 rounded-lg text-left transition-all border-2 cursor-pointer ${
                                         method === 'WHATSAPP' 
                                             ? 'border-[#9ADE7B] bg-[#9ADE7B]/5' 
                                             : 'border-slate-100 hover:border-slate-200 bg-slate-50'
                                     }`}
                                 >
                                     <div className="w-12 h-12 bg-[#9ADE7B]/15 rounded-lg flex items-center justify-center text-slate-900 shrink-0">
-                                        <MessageSquare className="w-5 h-5" />
+                                        <MessageSquare className="w-5 h-5 text-slate-700" />
                                     </div>
                                     <div>
                                         <p className="font-bold text-slate-900 text-sm">Confirmer par WhatsApp</p>
@@ -160,8 +205,9 @@ export default function Checkout() {
                                 </button>
 
                                 <button 
+                                    type="button"
                                     onClick={() => setMethod('FORMULAIRE')}
-                                    className={`flex items-center gap-4 p-5 rounded-lg text-left transition-all border-2 ${
+                                    className={`flex items-center gap-4 p-5 rounded-lg text-left transition-all border-2 cursor-pointer ${
                                         method === 'FORMULAIRE' 
                                             ? 'border-[#9ADE7B] bg-[#9ADE7B]/5' 
                                             : 'border-slate-100 hover:border-slate-200 bg-slate-50'
@@ -208,11 +254,12 @@ export default function Checkout() {
                             </div>
 
                             <motion.button 
-                                onClick={handleFinalize}
+                                type="button"
+                                onClick={(e) => handleFinalize(e)}
                                 disabled={loading || cart.length === 0}
                                 whileHover={!(loading || cart.length === 0) ? { scale: 1.01 } : {}}
                                 whileTap={!(loading || cart.length === 0) ? { scale: 0.99 } : {}}
-                                className="w-full bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] font-extrabold py-5 rounded-lg flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#9ADE7B]/10 uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                                className="w-full bg-[#9ADE7B] hover:bg-slate-900 text-slate-900 hover:text-[#9ADE7B] font-extrabold py-5 rounded-lg flex items-center justify-center gap-3 transition-all shadow-xl shadow-[#9ADE7B]/10 uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Valider la commande"}
                                 {!loading && <ArrowRight className="w-4 h-4" />}
