@@ -1,6 +1,29 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Banknote, ShoppingBasket, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { Banknote, ShoppingBasket, ChevronLeft, ChevronRight, Loader2, Search, Sparkles } from "lucide-react";
+
+// 🌟 Fonction pour surligner les caractères correspondants dans l'ID de la commande
+function SurlignerTexte(texte = "", recherche = "") {
+  if (!recherche.trim()) return <span>{texte}</span>;
+
+  const motifSecurise = recherche.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`(${motifSecurise})`, "gi");
+  const morceaux = texte.split(regex);
+
+  return (
+    <span>
+      {morceaux.map((morceau, index) => 
+        regex.test(morceau) ? (
+          <mark key={index} className="bg-[#9ADE7B]/40 text-slate-900 font-black rounded-sm px-0.5 transition-all">
+            {morceau}
+          </mark>
+        ) : (
+          morceau
+        )
+      )}
+    </span>
+  );
+}
 
 export default function Gest_commande() {
   const naviguer = useNavigate();
@@ -9,6 +32,17 @@ export default function Gest_commande() {
   const [commandes, setCommandes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 📌 États Filtrage (Statut & Dates) & Pagination
+  const [filtreEtat, setFiltreEtat] = useState("tous");
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // 🌟 NOUVEAUX ÉTATS : Recherche et animation du scanneur
+  const [rechercheCommande, setRechercheCommande] = useState("");
+  const [estEnTrainDeFiltrer, setEstEnTrainDeFiltrer] = useState(false);
 
   // 📌 Timer / Jauge Sentinel
   const duration = 300; 
@@ -49,8 +83,22 @@ export default function Gest_commande() {
     fetchCommandes();
   }, []);
 
+  // 🌟 NOUVEL EFFET : Gestion du témoin de scan temporaire à la saisie de l'ID commande
+  useEffect(() => {
+    setCurrentPage(1);
+    if (rechercheCommande.trim().length > 0) {
+      setEstEnTrainDeFiltrer(true);
+      const timer = setTimeout(() => setEstEnTrainDeFiltrer(false), 300);
+      return () => clearTimeout(timer);
+    } else {
+      setEstEnTrainDeFiltrer(false);
+    }
+  }, [rechercheCommande]);
+
   // ── CALCULS DES STATISTIQUES EN TEMPS RÉEL (UNIQUEMENT COMMANDES PAYÉES) ──
   const stats = useMemo(() => {
+    if (!Array.isArray(commandes)) return { totalCA: 0, nbrCommandesPayees: 0 };
+    
     const commandesPayees = commandes.filter(
       (c) => c.statut_commande?.toUpperCase() === "PAYEE"
     );
@@ -61,18 +109,40 @@ export default function Gest_commande() {
     return { totalCA, nbrCommandesPayees };
   }, [commandes]);
 
-  // 📌 États Filtrage & Pagination
-  const [filtreEtat, setFiltreEtat] = useState("tous");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  // 📌 Filtrage des données du tableau
+  // 📌 Filtrage combiné des données (Statut + Plage de dates + ID Commande)
   const filteredData = useMemo(() => {
-    if (filtreEtat === "tous") return commandes;
-    return commandes.filter((item) => item.statut_commande?.toLowerCase() === filtreEtat.toLowerCase());
-  }, [filtreEtat, commandes]);
+    if (!Array.isArray(commandes)) return [];
 
-  // 📌 Calcul de la pagination
+    return commandes.filter((item) => {
+      // 1. Filtrage par statut de commande
+      const matchStatut = filtreEtat === "tous" || item.statut_commande?.toLowerCase() === filtreEtat.toLowerCase();
+
+      // 2. Filtrage par plage de dates
+      let matchDate = true;
+      if (item.created_at) {
+        const dateCreation = new Date(item.created_at).setHours(0, 0, 0, 0);
+
+        if (dateDebut) {
+          const debut = new Date(dateDebut).setHours(0, 0, 0, 0);
+          if (dateCreation < debut) matchDate = false;
+        }
+        if (dateFin) {
+          const fin = new Date(dateFin).setHours(23, 59, 59, 999);
+          if (dateCreation > fin) matchDate = false;
+        }
+      }
+
+      // 3. Filtrage par ID Commande (Barre de recherche)
+      let matchRecherche = true;
+      if (rechercheCommande.trim() && item.id_commande) {
+        matchRecherche = item.id_commande.toLowerCase().includes(rechercheCommande.toLowerCase());
+      }
+
+      return matchStatut && matchDate && matchRecherche;
+    });
+  }, [filtreEtat, commandes, dateDebut, dateFin, rechercheCommande]);
+
+  // 📌 Calcul de la pagination basé sur les données filtrées
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexLastItem = currentPage * itemsPerPage;
   const indexFirstItem = indexLastItem - itemsPerPage;
@@ -119,7 +189,6 @@ export default function Gest_commande() {
 
       {/* ── Section Récapitulatif / Cartes ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
         {/* Carte Chiffre d'affaires */}
         <section className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xl flex flex-col justify-between min-h-[140px]">
           <div className="flex justify-between items-start w-full">
@@ -174,15 +243,50 @@ export default function Gest_commande() {
         </section>
       </div>
 
-      {/* ── Zone des Filtres ── */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4 pt-4">
+      {/* 🌟 NOUVELLE BARRE DE RECHERCHE DYNAMIQUE (Par Identifiant de commande) */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 box-border">
+        <div className="flex items-center gap-2 bg-white border border-slate-200 focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-[#9ADE7B]/20 rounded-xl px-3 py-2.5 w-full max-w-md transition-all box-border shadow-xs">
+          <Search size={16} className={`transition-colors ${estEnTrainDeFiltrer ? "text-[#9ADE7B]" : "text-slate-400"}`} />
+          <input 
+            type="text" 
+            placeholder="Rechercher une commande par son identifiant..." 
+            value={rechercheCommande}
+            onChange={(e) => setRechercheCommande(e.target.value)}
+            className="w-full bg-transparent border-none text-xs text-slate-800 focus:outline-none font-sans font-semibold placeholder-slate-400"
+          />
+          {rechercheCommande && (
+            <button 
+              onClick={() => setRechercheCommande("")}
+              className="text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer border-none transition-colors"
+            >
+              Effacer
+            </button>
+          )}
+        </div>
+
+        {/* Scanneur de réseau visuel */}
+        {rechercheCommande && (
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+            estEnTrainDeFiltrer 
+              ? "bg-[#9ADE7B]/20 text-slate-900 animate-pulse scale-105" 
+              : "bg-slate-100 text-slate-500"
+          }`}>
+            <Sparkles size={12} className={estEnTrainDeFiltrer ? "animate-spin text-[#9ADE7B]" : ""} />
+            <span>{estEnTrainDeFiltrer ? "Scan du registre..." : `${filteredData.length} trouvé(s)`}</span>
+          </div>
+        )}
+      </div>
+
+      {/* ── Zone des Filtres Existante (Statuts + Dates) ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+        {/* Filtres par Statut */}
         <div className="flex gap-2 flex-wrap">
           {["tous", "en cours", "payee", "annule"].map((type) => (
             <button
               key={type}
               className={`px-5 py-2.5 text-xs font-bold rounded-xl border transition-all duration-200 cursor-pointer uppercase tracking-wider active:scale-95 ${
                 filtreEtat === type 
-                  ? "bg-[#9ADE7B] text-slate-900 border-[#9ADE7B] shadow-lg font-extrabold" 
+                  ? "bg-[#9ADE7B] text-slate-900 border-[#9ADE7B] shadow-md font-extrabold" 
                   : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50 shadow-sm"
               }`}
               onClick={() => handleFilterChange(type)}
@@ -190,6 +294,32 @@ export default function Gest_commande() {
               {type === "tous" ? "Tous" : type === "payee" ? "Payées" : type}
             </button>
           ))}
+        </div>
+
+        {/* Filtres par Plage de Dates */}
+        <div className="flex flex-wrap gap-3 items-center text-xs text-slate-500 font-bold uppercase tracking-wider">
+          <span>Période du :</span>
+          <input 
+            type="date" 
+            value={dateDebut}
+            onChange={(e) => { setDateDebut(e.target.value); setCurrentPage(1); }}
+            className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case text-sm" 
+          />
+          <span>Au :</span>
+          <input 
+            type="date" 
+            value={dateFin}
+            onChange={(e) => { setDateFin(e.target.value); setCurrentPage(1); }}
+            className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case text-sm" 
+          />
+          {(dateDebut || dateFin) && (
+            <button 
+              onClick={() => { setDateDebut(""); setDateFin(""); setCurrentPage(1); }}
+              className="text-red-500 hover:text-red-700 bg-transparent border-none cursor-pointer font-bold uppercase tracking-wider ml-1 active:scale-95 transition-transform"
+            >
+              REINITIALISER
+            </button>
+          )}
         </div>
       </div>
 
@@ -214,8 +344,9 @@ export default function Gest_commande() {
                     onClick={() => detailCommande(item.id_commande)}
                     className="hover:bg-slate-50/50 transition-colors cursor-pointer"
                   >
+                    {/* 🌟 MODIFIÉ : Application du surlignage dynamique sur l'identifiant */}
                     <td className="p-4 text-xs font-bold text-[#9ADE7B] tracking-wide">
-                      #{item.id_commande.substring(0, 8)}...
+                      #{SurlignerTexte(item.id_commande.substring(0, 8), rechercheCommande)}...
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col">
@@ -247,7 +378,7 @@ export default function Gest_commande() {
               ) : (
                 <tr>
                   <td colSpan="5" className="p-12 text-center text-sm font-medium text-slate-400">
-                    Aucune commande trouvée pour le moment
+                    Aucune commande trouvée pour les critères sélectionnés.
                   </td>
                 </tr>
               )}

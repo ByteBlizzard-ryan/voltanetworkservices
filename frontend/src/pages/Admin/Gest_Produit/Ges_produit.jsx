@@ -1,6 +1,30 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ToggleLeft, ToggleRight, Calendar, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ToggleLeft, ToggleRight, Calendar, ChevronLeft, ChevronRight, Loader2, Search, Sparkles } from "lucide-react";
+
+// 🌟 NOUVEAU : Fonction pour surligner les lettres correspondantes dans la désignation
+function SurlignerTexte(texte = "", recherche = "") {
+    if (!recherche.trim()) return <span>{texte}</span>;
+
+    // Protection contre les caractères spéciaux Regex
+    const motifSecurise = recherche.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`(${motifSecurise})`, "gi");
+    const morceaux = texte.split(regex);
+
+    return (
+        <span>
+            {morceaux.map((morceau, index) => 
+                regex.test(morceau) ? (
+                    <mark key={index} className="bg-[#9ADE7B]/40 text-slate-900 font-black rounded-sm px-0.5 transition-all">
+                        {morceau}
+                    </mark>
+                ) : (
+                    morceau
+                )
+            )}
+        </span>
+    );
+}
 
 export default function Gest_produit() {
     const navigate = useNavigate();
@@ -10,44 +34,87 @@ export default function Gest_produit() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filtreEtat, setFiltreEtat] = useState("tous");
+    
+    // Nouveaux états pour le filtrage par date
+    const [dateDebut, setDateDebut] = useState("");
+    const [dateFin, setDateFin] = useState("");
+
+    // 🌟 NOUVEAUX ÉTATS : Recherche et animation du scanneur
+    const [rechercheProduit, setRechercheProduit] = useState("");
+    const [estEnTrainDeFiltrer, setEstEnTrainDeFiltrer] = useState(false);
+
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    // ── CHARGEMENT DES PRODUITS ──
-    useEffect(() => {
-        async function fetchProducts() {
-            try {
-                setLoading(true);
-                setError(null);
-                const response = await fetch("http://localhost:8000/api/produits");
-                
-                if (!response.ok) {
-                    throw new Error("Erreur lors de la récupération de la liste des produits.");
-                }
-                
-                const data = await response.json();
-                setProducts(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
+    // ── CHARGEMENT DES PRODUITS (Mémorisé pour éviter les boucles) ──
+    const fetchProducts = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Construction dynamique des paramètres de requête pour l'API
+            const params = new URLSearchParams({
+                date_debut: dateDebut,
+                date_fin: dateFin
+            });
+
+            const response = await fetch(`http://localhost:8000/api/produits?${params.toString()}`);
+            
+            if (!response.ok) {
+                throw new Error("Erreur lors de la récupération de la liste des produits.");
             }
+            
+            const data = await response.json();
+            setProducts(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
         }
+    }, [dateDebut, dateFin]);
 
+    // Déclenchement automatique de la recherche au changement des filtres ou des dates
+    useEffect(() => {
+        // Sécurité : empêche l'envoi de requêtes incomplètes si l'utilisateur tape au clavier
+        if ((dateDebut && dateDebut.length < 10) || (dateFin && dateFin.length < 10)) {
+            return;
+        }
         fetchProducts();
-    }, []);
+        setCurrentPage(1);
+    }, [fetchProducts, dateDebut, dateFin]);
 
-    // ── FILTRAGE DYNAMIQUE ──
+    // 🌟 NOUVEL EFFET : Gestion du témoin de scan temporaire à la saisie clavier
+    useEffect(() => {
+        setCurrentPage(1);
+        if (rechercheProduit.trim().length > 0) {
+            setEstEnTrainDeFiltrer(true);
+            const timer = setTimeout(() => setEstEnTrainDeFiltrer(false), 300);
+            return () => clearTimeout(timer);
+        } else {
+            setEstEnTrainDeFiltrer(false);
+        }
+    }, [rechercheProduit]);
+
+    // ── FILTRAGE DYNAMIQUE MIXTE (Statut + Barre de recherche) ──
     const filteredData = useMemo(() => {
-        if (filtreEtat === "tous") return products;
+        let resultat = products;
+
+        // 1. Filtrage par statut de disponibilité
         if (filtreEtat === "disponible") {
-            return products.filter(item => Number(item.est_disponible) === 1);
+            resultat = resultat.filter(item => Number(item.est_disponible) === 1);
+        } else if (filtreEtat === "indisponible") {
+            resultat = resultat.filter(item => Number(item.est_disponible) === 0);
         }
-        if (filtreEtat === "indisponible") {
-            return products.filter(item => Number(item.est_disponible) === 0);
+
+        // 2. Filtrage textuel en temps réel (Désignation du produit)
+        if (rechercheProduit.trim()) {
+            resultat = resultat.filter(item => 
+                item.nom_produit?.toLowerCase().includes(rechercheProduit.toLowerCase())
+            );
         }
-        return products;
-    }, [filtreEtat, products]);
+
+        return resultat;
+    }, [filtreEtat, products, rechercheProduit]);
 
     // ── PAGINATION ──
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -62,6 +129,11 @@ export default function Gest_produit() {
 
     const detailProduit = (id) => {
         navigate(`/admin/detail_produits/${id}`);
+    };
+
+    const handleResetDates = () => {
+        setDateDebut("");
+        setDateFin("");
     };
 
     // ── BASCULER LA DISPONIBILITÉ ──
@@ -80,8 +152,7 @@ export default function Gest_produit() {
                 headers: {
                     "Content-Type": "application/json",
                     "Accept": "application/json"
-                },
-                body: JSON.stringify({ est_disponible: nvxStatut })
+                }
             });
 
             if (!response.ok) {
@@ -136,7 +207,41 @@ export default function Gest_produit() {
                 </div>
             </header>
 
-            {/* ── Entête & Filtres ── */}
+            {/* 🌟 NOUVELLE BARRE DE RECHERCHE DYNAMIQUE (Identique à celle des clients) */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 box-border">
+                <div className="flex items-center gap-2 bg-white border border-slate-200 focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-[#9ADE7B]/20 rounded-xl px-3 py-2.5 w-full max-w-md transition-all box-border shadow-xs">
+                    <Search size={16} className={`transition-colors ${estEnTrainDeFiltrer ? "text-[#9ADE7B]" : "text-slate-400"}`} />
+                    <input 
+                        type="text" 
+                        placeholder="Rechercher un produit par sa désignation..." 
+                        value={rechercheProduit}
+                        onChange={(e) => setRechercheProduit(e.target.value)}
+                        className="w-full bg-transparent border-none text-xs text-slate-800 focus:outline-none font-sans font-semibold placeholder-slate-400"
+                    />
+                    {rechercheProduit && (
+                        <button 
+                            onClick={() => setRechercheProduit("")}
+                            className="text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer border-none transition-colors"
+                        >
+                            Effacer
+                        </button>
+                    )}
+                </div>
+
+                {/* Scanneur de réseau visuel */}
+                {rechercheProduit && (
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                        estEnTrainDeFiltrer 
+                            ? "bg-[#9ADE7B]/20 text-slate-900 animate-pulse scale-105" 
+                            : "bg-slate-100 text-slate-500"
+                    }`}>
+                        <Sparkles size={12} className={estEnTrainDeFiltrer ? "animate-spin text-[#9ADE7B]" : ""} />
+                        <span>{estEnTrainDeFiltrer ? "Scan du catalogue..." : `${filteredData.length} trouvé(s)`}</span>
+                    </div>
+                )}
+            </div>
+
+            {/* ── Entête & Filtres existants ── */}
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 w-full bg-white border-b border-slate-100 pb-6">
                 
                 {/* Onglets Filtres d'état */}
@@ -161,14 +266,36 @@ export default function Gest_produit() {
                     <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
                         <Calendar size={14} className="text-slate-400" />
                         <span className="text-slate-400">Du :</span>
-                        <input type="date" className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" />
+                        <input 
+                            type="date" 
+                            value={dateDebut}
+                            onChange={(e) => setDateDebut(e.target.value)}
+                            className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" 
+                        />
                     </div>
+                    
                     <span className="hidden sm:inline font-bold text-slate-400 uppercase text-[10px] tracking-wider">au</span>
+                    
                     <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto">
                         <Calendar size={14} className="text-slate-400" />
                         <span className="text-slate-400">Au :</span>
-                        <input type="date" className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" />
+                        <input 
+                            type="date" 
+                            value={dateFin}
+                            onChange={(e) => setDateFin(e.target.value)}
+                            className="bg-transparent text-slate-900 font-bold border-none outline-none cursor-pointer p-0 text-xs font-sans" 
+                        />
                     </div>
+
+                    {/* Bouton pour réinitialiser les filtres de date */}
+                    {(dateDebut || dateFin) && (
+                        <button 
+                            onClick={handleResetDates}
+                            className="text-[10px] font-bold text-rose-500 bg-rose-50 hover:bg-rose-100 px-3 py-2 rounded-xl transition-colors border-none cursor-pointer uppercase tracking-wider"
+                        >
+                            Réinitialiser
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -203,8 +330,9 @@ export default function Gest_produit() {
                                             </td>
                                             <td className="p-4 align-middle">
                                                 <div className="flex flex-col cursor-pointer" onClick={() => detailProduit(produit.id_produit)}>
-                                                    <h4 className="font-bold text-slate-900 text-sm m-0 group-hover:text-[#9ADE7B] transition-colors">
-                                                        {produit.nom_produit}
+                                                    {/* 🌟 MODIFIÉ : Utilisation de la fonction de surlignage sur la désignation */}
+                                                    <h4 className="font-bold text-slate-900 text-sm m-0 group-hover:text-slate-600 transition-colors">
+                                                        {SurlignerTexte(produit.nom_produit, rechercheProduit)}
                                                     </h4>
                                                     <p className="text-xs text-slate-600 m-0 mt-0.5 line-clamp-1">
                                                         {produit.apropos || produit.description_produit || "Aucune description fournie"}

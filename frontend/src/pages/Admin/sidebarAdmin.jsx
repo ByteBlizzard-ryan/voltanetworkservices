@@ -5,12 +5,11 @@ import {
   KeyRound, Archive, ShoppingCart, Users, LayoutDashboard, 
   BrickWallShield, Menu, UserPen, Search 
 } from "lucide-react";
-// 🛠️ Import du hook useSidebar (on utilise le hook qui contient l'état de nos permissions)
+// Import du hook useSidebar
 import { useSidebar } from "./Context_sider"; 
 import logo from "../../assets/logo.png";
 
 export default function AdminSidebar() {
-  // Sécurisation de l'extraction au cas où l'objet permissions soit temporairement indéfini
   const { isCollapsed, isMobile, isOpenMobile, toggleSidebar, permissions = {} } = useSidebar();
   const location = useLocation();
   const navigate = useNavigate();
@@ -27,25 +26,34 @@ export default function AdminSidebar() {
       path: "/admin/users", 
       label: "Clients", 
       icon: <Users size={18} />, 
-      permissionKey: "clients" 
+      permissionKey: "clients",
+      // Allume l'onglet pour toutes les sous-routes clients
+      exact: false 
     },
     { 
       path: "/admin/products", 
       label: "Produits", 
       icon: <Archive size={18} />, 
-      permissionKey: "produits" 
+      permissionKey: "produits",
+      exact: false,
+      // Correspondance pour l'URL personnalisée de détail produit
+      aliasPath: "/admin/detail_produits"
     },
     { 
       path: "/admin/commande", 
       label: "Commandes", 
       icon: <ShoppingCart size={18} />, 
-      permissionKey: "commandes" 
+      permissionKey: "commandes",
+      // Allume l'onglet pour toutes les sous-routes de commandes
+      exact: false 
     },
     { 
       path: "/admin/administrateur", 
       label: "Administrateurs", 
       icon: <BrickWallShield size={18} />, 
-      permissionKey: "administrateurs" 
+      permissionKey: "administrateurs",
+      // 🛠️ MODIFIÉ : Allume aussi l'onglet pour les pages d'ajout/édition d'administrateurs
+      exact: false 
     },
     { 
       path: "/admin/accesadmin", 
@@ -55,7 +63,7 @@ export default function AdminSidebar() {
     },
   ];
 
-  // 🛠️ FILTRAGE SÉCURISÉ : On utilise le chaînage optionnel au cas où les clés n'existent pas encore
+  // FILTRAGE SÉCURISÉ : basé sur les permissions de l'utilisateur
   const allowedNavItems = navItems.filter(item => permissions?.[item.permissionKey]);
 
   return (
@@ -72,7 +80,7 @@ export default function AdminSidebar() {
             <img src={logo} alt="Logo" className="w-8 h-8 object-contain shrink-0" />
             {!isCollapsed && (
               <span className="text-[10px] font-extrabold tracking-[0.2em] text-slate-900 uppercase truncate">
-                Volta Network
+                Volta Network 
               </span>
             )}
           </div>
@@ -85,11 +93,16 @@ export default function AdminSidebar() {
 
         <ul className="flex-1 list-none p-3 m-0 flex flex-col gap-1 overflow-y-auto box-border">
           {allowedNavItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            // RECONNAISSANCE DE LA ROUTE : Utilise startsWith si exact vaut false
+            const isActive = item.exact === false 
+              ? (location.pathname.startsWith(item.path) || (item.aliasPath && location.pathname.startsWith(item.aliasPath)))
+              : location.pathname === item.path;
+
             return (
               <li key={item.path}>
                 <Link
                   to={item.path}
+                  onClick={() => isMobile && toggleSidebar()}
                   className={`flex items-center gap-3.5 px-3 py-3 rounded-xl font-bold text-xs tracking-wide uppercase transition-all box-border no-underline ${
                     isActive 
                       ? "bg-slate-900 text-white shadow-md shadow-slate-900/10 font-extrabold" 
@@ -105,7 +118,6 @@ export default function AdminSidebar() {
             );
           })}
           
-          {/* Message de secours si un admin n'a absolument aucun droit actif */}
           {allowedNavItems.length === 0 && (
             <p className="text-[10px] text-center text-slate-400 font-bold p-4 italic uppercase tracking-[0.2em]">
               Aucun accès autorisé
@@ -126,26 +138,12 @@ export default function AdminSidebar() {
               <Menu size={22} />
             </button>
           )}
-          
-          {/* BARRE DE RECHERCHE CONVERTIE */}
-          <div className="flex items-center gap-2 bg-slate-50 border border-transparent focus-within:border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-[#9ADE7B]/20 rounded-xl px-3 py-2 w-full transition-all box-border">
-            <Search size={16} className="text-slate-400 shrink-0" />
-            <input 
-              type="text" 
-              placeholder="Rechercher..." 
-              className="w-full bg-transparent border-none text-xs text-slate-800 focus:outline-none font-sans font-medium"
-            />
-          </div>
         </div>
 
         <div 
           onClick={() => navigate('/admin/profil')}
           className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded-xl transition-all select-none box-border ml-4"
         >
-          <div className="flex flex-col text-right hidden sm:flex font-sans">
-            <span className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-0.5">
-            </span>
-          </div>
           <div className="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-900 transition-colors shadow-sm">
             <UserPen size={16} />
           </div>

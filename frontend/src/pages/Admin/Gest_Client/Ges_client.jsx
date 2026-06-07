@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { CircleOff, OctagonMinus, CheckCircle2, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { CircleOff, OctagonMinus, CheckCircle2, ChevronLeft, ChevronRight, Loader2, Search, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // ==========================================
@@ -18,6 +18,30 @@ function Couleur_Nom_Icon(lettre = "") {
     return colorMap[lettre] || "#9ca3af";
 }
 
+// 🌟 NOUVEAU : Fonction pour surligner les lettres correspondantes dans le tableau
+function SurlignerTexte(texte = "", recherche = "") {
+    if (!recherche.trim()) return <span>{texte}</span>;
+
+    // Protection contre les caractères spéciaux Regex
+    const motifSecurise = recherche.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`(${motifSecurise})`, "gi");
+    const morceaux = texte.split(regex);
+
+    return (
+        <span>
+            {morceaux.map((morceau, index) => 
+                regex.test(morceau) ? (
+                    <mark key={index} className="bg-[#9ADE7B]/40 text-slate-900 font-black rounded-sm px-0.5 transition-all">
+                        {morceau}
+                    </mark>
+                ) : (
+                    morceau
+                )
+            )}
+        </span>
+    );
+}
+
 // ==========================================
 // 2. SOUS-COMPOSANT : CON_GESTION_CLIENT
 // ==========================================
@@ -27,6 +51,10 @@ function Con_gestion_client() {
     const [filtreEtat, setFiltreEtat] = useState("tous");
     const [dateDebut, setDateDebut] = useState("");
     const [dateFin, setDateFin] = useState("");
+    
+    const [rechercheNom, setRechercheNom] = useState("");
+    // 🌟 NOUVEL ÉTAT : Pour l'animation visuelle de recherche en cours
+    const [estEnTrainDeFiltrer, setEstEnTrainDeFiltrer] = useState(false);
     
     const [currentPage, setCurrentPage] = useState(1);
     const [opendeploque, setOpenDeploque] = useState(false); 
@@ -70,10 +98,26 @@ function Con_gestion_client() {
         }
     }, [filtreEtat, dateDebut, dateFin]);
 
+    // EFFET : Déclenche la recherche avec sécurité sur la saisie des dates
     useEffect(() => {
+        if ((dateDebut && dateDebut.length < 10) || (dateFin && dateFin.length < 10)) {
+            return;
+        }
         fetchClients();
         setCurrentPage(1);
-    }, [fetchClients]);
+    }, [fetchClients, dateDebut, dateFin]);
+
+    // 🌟 EFFET : Déclenche l'effet visuel de scan temporaire à la frappe au clavier
+    useEffect(() => {
+        setCurrentPage(1);
+        if (rechercheNom.trim().length > 0) {
+            setEstEnTrainDeFiltrer(true);
+            const timer = setTimeout(() => setEstEnTrainDeFiltrer(false), 300);
+            return () => clearTimeout(timer);
+        } else {
+            setEstEnTrainDeFiltrer(false);
+        }
+    }, [rechercheNom]);
 
     // Action de Blocage / Déblocage en BDD
     const handleToggleStatut = async () => {
@@ -103,11 +147,26 @@ function Con_gestion_client() {
         }
     };
 
-    // Pagination interne
-    const totalPages = Math.ceil(clients.length / itemsPerPage);
+    // Nettoyage rapide des filtres de date
+    const handleResetDates = () => {
+        setDateDebut("");
+        setDateFin("");
+    };
+
+    // FILTRAGE LOCAL DYNAMIQUE
+    const filteredClients = useMemo(() => {
+        if (!rechercheNom.trim()) return clients;
+
+        return clients.filter((user) =>
+            user.nom?.toLowerCase().includes(rechercheNom.toLowerCase())
+        );
+    }, [clients, rechercheNom]);
+
+    // PAGINATION INTERNE
+    const totalPages = Math.ceil(filteredClients.length / itemsPerPage);
     const indexLastItem = currentPage * itemsPerPage;
     const indexFirstItem = indexLastItem - itemsPerPage;
-    const currentItems = clients.slice(indexFirstItem, indexLastItem);
+    const currentItems = filteredClients.slice(indexFirstItem, indexLastItem);
 
     const openModal = (user, e) => {
         e.stopPropagation(); 
@@ -121,40 +180,86 @@ function Con_gestion_client() {
 
     return (
         <div className="flex flex-col gap-6 w-full text-slate-900">
-            {/* Barre de Filtres */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between w-full gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div className="flex items-center gap-3 flex-wrap">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mr-2">Statut :</span>
-                    {["tous", "débloqué", "bloqué"].map((type) => (
-                        <button 
-                            key={type}
-                            className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] rounded-xl cursor-pointer border-none transition-all active:scale-95 ${
-                                filtreEtat === type 
-                                    ? "bg-[#9ADE7B] text-slate-900 shadow-sm" 
-                                    : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-100"
-                            }`}
-                            onClick={() => setFiltreEtat(type)}
-                        >
-                            {type === "tous" ? "Tous" : type === "débloqué" ? "Débloqués" : "Bloqués"}
-                        </button>
-                    ))}
+            {/* Barre de Filtres & Recherche */}
+            <div className="flex flex-col gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
+                    {/* Zone de recherche */}
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-[#9ADE7B]/20 rounded-xl px-3 py-2.5 w-full max-w-md transition-all box-border shadow-xs">
+                        <Search size={16} className={`transition-colors ${estEnTrainDeFiltrer ? "text-[#9ADE7B]" : "text-slate-400"}`} />
+                        <input 
+                            type="text" 
+                            placeholder="Rechercher un client par son nom..." 
+                            value={rechercheNom}
+                            onChange={(e) => setRechercheNom(e.target.value)}
+                            className="w-full bg-transparent border-none text-xs text-slate-800 focus:outline-none font-sans font-semibold placeholder-slate-400"
+                        />
+                        {rechercheNom && (
+                            <button 
+                                onClick={() => setRechercheNom("")}
+                                className="text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer border-none transition-colors"
+                            >
+                                Effacer
+                            </button>
+                        )}
+                    </div>
+
+                    {/* 🌟 NOUVEAU : Témoin visuel de scan dynamique */}
+                    {rechercheNom && (
+                        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                            estEnTrainDeFiltrer 
+                                ? "bg-[#9ADE7B]/20 text-slate-900 animate-pulse scale-105" 
+                                : "bg-slate-100 text-slate-500"
+                        }`}>
+                            <Sparkles size={12} className={estEnTrainDeFiltrer ? "animate-spin text-[#9ADE7B]" : ""} />
+                            <span>{estEnTrainDeFiltrer ? "Scan du réseau..." : `${filteredClients.length} trouvé(s)`}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="flex flex-wrap gap-3 items-center">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Filtrer du :</span>
-                    <input 
-                        type="date" 
-                        value={dateDebut}
-                        onChange={(e) => setDateDebut(e.target.value)}
-                        className="bg-white border border-slate-100 text-slate-900 p-2 text-xs rounded-xl outline-none font-sans font-bold focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
-                    />
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">au :</span>
-                    <input 
-                        type="date" 
-                        value={dateFin}
-                        onChange={(e) => setDateFin(e.target.value)}
-                        className="bg-white border border-slate-100 text-slate-900 p-2 text-xs rounded-xl outline-none font-sans font-bold focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
-                    />
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between w-full gap-4 pt-2 border-t border-slate-100">
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mr-2">Statut :</span>
+                        {["tous", "débloqué", "bloqué"].map((type) => (
+                            <button 
+                                key={type}
+                                className={`px-4 py-2 text-xs font-bold uppercase tracking-[0.2em] rounded-xl cursor-pointer border-none transition-all active:scale-95 ${
+                                    filtreEtat === type 
+                                        ? "bg-[#9ADE7B] text-slate-900 shadow-sm" 
+                                        : "bg-white text-slate-600 hover:bg-slate-50 border border-slate-100"
+                                }`}
+                                onClick={() => setFiltreEtat(type)}
+                            >
+                                {type === "tous" ? "Tous" : type === "débloqué" ? "Débloqués" : "Bloqués"}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-3 items-center">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">Filtrer du :</span>
+                        <input 
+                            type="date" 
+                            value={dateDebut}
+                            onChange={(e) => setDateDebut(e.target.value)}
+                            className="bg-white border border-slate-100 text-slate-900 p-2 text-xs rounded-xl outline-none font-sans font-bold focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
+                        />
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">au :</span>
+                        <input 
+                            type="date" 
+                            value={dateFin}
+                            onChange={(e) => setDateFin(e.target.value)}
+                            className="bg-white border border-slate-100 text-slate-900 p-2 text-xs rounded-xl outline-none font-sans font-bold focus:ring-2 focus:ring-[#9ADE7B] focus:border-transparent transition-all" 
+                        />
+                        
+                        {(dateDebut || dateFin) && (
+                            <button 
+                                onClick={handleResetDates}
+                                className="text-[10px] font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-colors border-none cursor-pointer uppercase tracking-wider"
+                            >
+                                Réinitialiser
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -185,7 +290,7 @@ function Con_gestion_client() {
                                     key={user.id} 
                                     onClick={() => navigate(`/admin/users/${user.id}`)}
                                     className="hover:bg-slate-50 transition-colors cursor-pointer group"
-                                originals>
+                                >
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">
                                             <div 
@@ -194,7 +299,10 @@ function Con_gestion_client() {
                                             >
                                                 {user.nom?.charAt(0).toUpperCase() || ""}
                                             </div>
-                                            <h3 className="font-extrabold text-base text-slate-900 m-0 group-hover:text-slate-900 transition-colors">{user.nom}</h3>
+                                            {/* 🌟 MODIFIÉ : Le nom utilise maintenant la fonction de surlignage */}
+                                            <h3 className="font-extrabold text-base text-slate-900 m-0 group-hover:text-slate-900 transition-colors">
+                                                {SurlignerTexte(user.nom, rechercheNom)}
+                                            </h3>
                                         </div>
                                     </td>
                                     <td className="p-4 text-sm font-bold text-slate-600">{user.email}</td>

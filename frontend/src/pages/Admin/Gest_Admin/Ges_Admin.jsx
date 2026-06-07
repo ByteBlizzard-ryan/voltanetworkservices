@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   CornerUpLeft, Mail, User, LockKeyhole, 
-  RotateCcwKey, ShieldCog, UserPlus, Loader2
+  RotateCcwKey, ShieldCog, UserPlus, Loader2, Search, Sparkles
 } from 'lucide-react';
 
 // ── FONCTIONS DE STYLE UTILITAIRES ────────────────────────────────────────
@@ -17,6 +17,29 @@ function Couleur_Nom_Icon(lettre = "") {
     Y: "#C5E1A5", Z: "#EF9A9A"
   };
   return colorMap[lettre] || "#94a3b8";
+}
+
+// 🌟 Fonction pour surligner les caractères correspondants lors de la recherche
+function SurlignerTexte(texte = "", recherche = "") {
+  if (!recherche.trim()) return <span>{texte}</span>;
+
+  const motifSecurise = recherche.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const regex = new RegExp(`(${motifSecurise})`, "gi");
+  const morceaux = texte.split(regex);
+
+  return (
+    <span>
+      {morceaux.map((morceau, index) => 
+        regex.test(morceau) ? (
+          <mark key={index} className="bg-[#9ADE7B]/40 text-slate-900 font-black rounded-sm px-0.5 transition-all">
+            {morceau}
+          </mark>
+        ) : (
+          morceau
+        )
+      )}
+    </span>
+  );
 }
 
 // ── COMPOSANT FORMULAIRE D'AJOUT ─────────────────────────────────────────
@@ -94,13 +117,6 @@ export function Ajout_Admin() {
           />
         </label>
 
-        {/* <label className="flex flex-col gap-2">
-          <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]"><ShieldCog size={15} /> Rôle & Privilèges</p>
-          <select disabled className="bg-slate-100 text-sm w-full p-3.5 rounded-xl border border-slate-100 cursor-not-allowed appearance-none font-sans font-bold text-slate-700 uppercase tracking-[0.2em]">
-            <option value="ADMIN">ADMINISTRATEUR</option>
-          </select>
-        </label> */}
-
         <label className="flex flex-col gap-2">
           <p className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]"><LockKeyhole size={15} /> Mot de passe</p>
           <input 
@@ -132,14 +148,22 @@ export function Ajout_Admin() {
   );
 }
 
-// ── 4. COMPOSANT LISTE & FILTRES ─────────────────────────────────────────────
+// ── COMPOSANT LISTE & FILTRES ─────────────────────────────────────────────
 export function Con_gestion_admin() {
   const naviguer = useNavigate();
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtreEtat, setFiltreEtat] = useState("tous");
+  
+  const [dateDebut, setDateDebut] = useState("");
+  const [dateFin, setDateFin] = useState("");
+
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // 🌟 NOUVEAUX ÉTATS : Recherche et animation scanner
+  const [rechercheAdmin, setRechercheAdmin] = useState("");
+  const [estEnTrainDeFiltrer, setEstEnTrainDeFiltrer] = useState(false);
 
   // 1. Charger les administrateurs depuis le serveur
   useEffect(() => {
@@ -149,7 +173,8 @@ export function Con_gestion_admin() {
         const response = await fetch("http://localhost:8000/api/admin/administrateurs");
         if (response.ok) {
           const data = await response.json();
-          setAdmins(data);
+          const listeAdmins = Array.isArray(data) ? data : (data.data || []);
+          setAdmins(listeAdmins);
         }
       } catch (err) {
         console.error("Erreur de synchronisation :", err);
@@ -159,6 +184,18 @@ export function Con_gestion_admin() {
     }
     fetchAdmins();
   }, []);
+
+  // 🌟 NOUVEL EFFET : Gestion du témoin de scan temporaire à la saisie de la recherche
+  useEffect(() => {
+    setCurrentPage(1);
+    if (rechercheAdmin.trim().length > 0) {
+      setEstEnTrainDeFiltrer(true);
+      const timer = setTimeout(() => setEstEnTrainDeFiltrer(false), 300);
+      return () => clearTimeout(timer);
+    } else {
+      setEstEnTrainDeFiltrer(false);
+    }
+  }, [rechercheAdmin]);
 
   // 2. Action d'activation / blocage en direct
   const toggleStatus = async (id, e) => {
@@ -170,21 +207,51 @@ export function Con_gestion_admin() {
       });
       if (response.ok) {
         const data = await response.json();
-        setAdmins(prev => prev.map(adm => 
-          adm.id_utilisateur === id ? { ...adm, compte_est_actif: data.compte_est_actif } : adm
-        ));
+        setAdmins(prev => prev.map(adm => {
+          const admId = adm.id || adm.id_utilisateur;
+          return admId === id ? { ...adm, etat: data.compte_est_actif ? 'actif' : 'inactif' } : adm;
+        }));
       }
     } catch (err) {
       alert("Erreur réseau, modification impossible.");
     }
   };
 
-  // 3. Filtrage dynamique calqué sur les booléens de Laravel (1 = actif, 0 = inactif)
+  // 3. Filtrage dynamique combiné (Statut + Plage de dates + Recherche Nom/Email)
   const filteredData = useMemo(() => {
-    if (filtreEtat === "tous") return admins;
-    const cibleBool = filtreEtat === "actif" ? 1 : 0;
-    return admins.filter(item => Number(item.compte_est_actif) === cibleBool);
-  }, [filtreEtat, admins]);
+    if (!Array.isArray(admins)) return [];
+    
+    return admins.filter(item => {
+      // Filtrage par statut
+      const matchStatut = filtreEtat === "tous" || item.etat === filtreEtat;
+
+      // Filtrage par date de création
+      let matchDate = true;
+      if (item.created_at) {
+        const dateCreation = new Date(item.created_at).setHours(0, 0, 0, 0);
+
+        if (dateDebut) {
+          const debut = new Date(dateDebut).setHours(0, 0, 0, 0);
+          if (dateCreation < debut) matchDate = false;
+        }
+        if (dateFin) {
+          const fin = new Date(dateFin).setHours(23, 59, 59, 999);
+          if (dateCreation > fin) matchDate = false;
+        }
+      }
+
+      // Filtrage par Recherche Nom ou Email
+      let matchRecherche = true;
+      if (rechercheAdmin.trim()) {
+        const query = rechercheAdmin.toLowerCase();
+        const nomComplet = (item.nom || item.nom_complet || "").toLowerCase();
+        const email = (item.email || "").toLowerCase();
+        matchRecherche = nomComplet.includes(query) || email.includes(query);
+      }
+
+      return matchStatut && matchDate && matchRecherche;
+    });
+  }, [filtreEtat, admins, dateDebut, dateFin, rechercheAdmin]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexLastItem = currentPage * itemsPerPage;
@@ -209,18 +276,53 @@ export function Con_gestion_admin() {
       <div className="self-end">
         <button 
           onClick={() => naviguer('/admin/administrateur/ajouter_admin')}
-          className="bg-[#9ADE7B] hover:bg-[#89cf6c] text-white font-bold text-xs py-3.5 px-6 rounded-xl cursor-pointer transition-all border-none shadow-sm active:scale-95 uppercase tracking-[0.2em]"
+          className="bg-[#9ADE7B] hover:bg-[#89cf6c] text-slate-900 font-bold text-xs py-3.5 px-6 rounded-xl cursor-pointer transition-all border-none shadow-sm active:scale-95 uppercase tracking-[0.2em]"
         >
           + Ajouter un administrateur
         </button>
       </div>
 
+      {/* 🌟 NOUVELLE BARRE DE RECHERCHE HARMONISÉE */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full bg-slate-50 p-4 rounded-2xl border border-slate-100 box-border">
+        <div className="flex items-center gap-2 bg-white border border-slate-200 focus-within:border-slate-300 focus-within:ring-2 focus-within:ring-[#9ADE7B]/20 rounded-xl px-3 py-2.5 w-full max-w-md transition-all box-border shadow-xs">
+          <Search size={16} className={`transition-colors ${estEnTrainDeFiltrer ? "text-[#9ADE7B]" : "text-slate-400"}`} />
+          <input 
+            type="text" 
+            placeholder="Rechercher par nom ou adresse email..." 
+            value={rechercheAdmin}
+            onChange={(e) => setRechercheAdmin(e.target.value)}
+            className="w-full bg-transparent border-none text-xs text-slate-800 focus:outline-none font-sans font-semibold placeholder-slate-400"
+          />
+          {rechercheAdmin && (
+            <button 
+              onClick={() => setRechercheAdmin("")}
+              className="text-[10px] font-bold text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded-md cursor-pointer border-none transition-colors"
+            >
+              Effacer
+            </button>
+          )}
+        </div>
+
+        {/* Témoin Scanneur Sentinel */}
+        {rechercheAdmin && (
+          <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] transition-all duration-300 ${
+            estEnTrainDeFiltrer 
+              ? "bg-[#9ADE7B]/20 text-slate-900 animate-pulse scale-105" 
+              : "bg-slate-100 text-slate-500"
+          }`}>
+            <Sparkles size={12} className={estEnTrainDeFiltrer ? "animate-spin text-[#9ADE7B]" : ""} />
+            <span>{estEnTrainDeFiltrer ? "Scan Sentinel..." : `${filteredData.length} trouvé(s)`}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Zone des Filtres (Statuts + Dates) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between w-full gap-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
         <div className="flex gap-2 flex-wrap">
           {["tous", "actif", "inactif"].map((type) => (
             <button 
               key={type}
-              className={`py-2 px-5 text-xs rounded-xl font-bold uppercase tracking-[0.2em] cursor-pointer transition-all border-none active:scale-95 ${filtreEtat === type ? "bg-[#9ADE7B] text-white shadow-sm" : "bg-white text-slate-600 border border-slate-100 hover:bg-slate-50"}`}
+              className={`py-2.5 px-5 text-xs rounded-xl font-bold uppercase tracking-[0.2em] cursor-pointer transition-all border-none active:scale-95 ${filtreEtat === type ? "bg-[#9ADE7B] text-slate-900 shadow-md font-extrabold" : "bg-white text-slate-600 border border-slate-100 hover:bg-slate-50"}`}
               onClick={() => handleFilterChange(type)}
             >
               {type === "tous" ? "Tous" : type === "actif" ? "Actifs" : "Inactifs"}
@@ -230,9 +332,27 @@ export function Con_gestion_admin() {
 
         <div className="flex flex-wrap gap-3 items-center text-xs text-slate-500 font-bold uppercase tracking-[0.2em]">
           <span>Filtrer du :</span>
-          <input type="date" className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case" />
+          <input 
+            type="date" 
+            value={dateDebut}
+            onChange={(e) => { setDateDebut(e.target.value); setCurrentPage(1); }}
+            className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case" 
+          />
           <span>Au :</span>
-          <input type="date" className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case" />
+          <input 
+            type="date" 
+            value={dateFin}
+            onChange={(e) => { setDateFin(e.target.value); setCurrentPage(1); }}
+            className="bg-white border border-slate-200 text-slate-800 p-2 px-3 rounded-xl cursor-pointer outline-none focus:ring-2 focus:ring-[#9ADE7B] font-sans font-normal normal-case" 
+          />
+          {(dateDebut || dateFin) && (
+            <button 
+              onClick={() => { setDateDebut(""); setDateFin(""); setCurrentPage(1); }}
+              className="text-red-500 hover:text-red-700 bg-transparent border-none cursor-pointer font-bold uppercase tracking-[0.1em]"
+            >
+              Réinitialiser
+            </button>
+          )}
         </div>
       </div>
 
@@ -241,7 +361,6 @@ export function Con_gestion_admin() {
           <thead>
             <tr className="bg-slate-50/70 text-slate-400 text-[10px] font-bold uppercase tracking-[0.2em] border-b border-slate-100">
               <th className="p-4 pl-6">Nom de l'admin</th>
-              {/* <th className="p-4">Rôle</th> */}
               <th className="p-4">Email</th>
               <th className="p-4">Statut</th>
               <th className="p-4 pr-6 text-right">Actions</th>
@@ -250,11 +369,14 @@ export function Con_gestion_admin() {
           <tbody className="divide-y divide-slate-100/80">
             {currentItems.length > 0 ? (
               currentItems.map((adminItem) => {
-                const estActif = Number(adminItem.compte_est_actif) === 1;
+                const estActif = adminItem.etat === "actif";
+                const currentId = adminItem.id || adminItem.id_utilisateur;
+                const nomAdmin = adminItem.nom || adminItem.nom_complet || "";
+
                 return (
                   <tr 
-                    key={adminItem.id_utilisateur} 
-                    onClick={() => naviguer(`/admin/administrateur/${adminItem.id_utilisateur}`)}
+                    key={currentId} 
+                    onClick={() => naviguer(`/admin/administrateur/${currentId}`)}
                     className="group transition-colors cursor-pointer hover:bg-slate-50/60"
                   >
                     <td className="p-4 pl-6">
@@ -265,17 +387,22 @@ export function Con_gestion_admin() {
                         >
                           {adminItem.email?.charAt(0).toUpperCase() || ""}
                         </label>
-                        <h3 className="m-0 text-sm font-extrabold text-slate-800 leading-tight">{adminItem.nom_complet}</h3>      
+                        <h3 className="m-0 text-sm font-extrabold text-slate-800 leading-tight">
+                          {/* 🌟 MODIFIÉ : Surlignage dynamique sur le nom */}
+                          {SurlignerTexte(nomAdmin, rechercheAdmin)}
+                        </h3>      
                       </div>
                     </td>
-                    {/* <td className="p-4 text-slate-400 font-mono text-xs uppercase">{adminItem.role_utilisateur}</td> */}
-                    <td className="p-4 text-slate-600 text-sm font-sans">{adminItem.email}</td>
+                    <td className="p-4 text-slate-600 text-sm font-sans">
+                      {/* 🌟 MODIFIÉ : Surlignage dynamique sur l'email */}
+                      {SurlignerTexte(adminItem.email || "", rechercheAdmin)}
+                    </td>
                     <td className="p-4">
                       <span 
                         className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-[0.2em] font-sans"
                         style={{ 
                           backgroundColor: estActif ? "rgba(154, 222, 123, 0.2)" : "rgba(239, 68, 68, 0.15)", 
-                          color: estActif ? "#slate-900" : "#b91c1c" 
+                          color: estActif ? "#0f172a" : "#b91c1c" 
                         }}
                       >
                         {estActif ? "Actif" : "Inactif"}
@@ -285,7 +412,7 @@ export function Con_gestion_admin() {
                       <button 
                         style={{ color: estActif ? "#b91c1c" : "#1A4301" }}
                         className="border-none bg-transparent cursor-pointer font-bold text-xs uppercase tracking-[0.2em] hover:opacity-70 transition-opacity active:scale-95"
-                        onClick={(e) => toggleStatus(adminItem.id_utilisateur, e)}
+                        onClick={(e) => toggleStatus(currentId, e)}
                       >
                         {estActif ? "Bloquer" : "Débloquer"}
                       </button>
@@ -295,7 +422,7 @@ export function Con_gestion_admin() {
               })
             ) : (
               <tr>
-                <td colSpan="5" className="p-12 text-center text-slate-400 italic text-sm">Aucun administrateur trouvé</td>
+                <td colSpan="4" className="p-12 text-center text-slate-400 italic text-sm">Aucun administrateur trouvé</td>
               </tr>
             )}
           </tbody>
@@ -316,7 +443,7 @@ export function Con_gestion_admin() {
             <button 
               key={page} 
               onClick={() => setCurrentPage(page)}
-              className={`px-3.5 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border ${currentPage === page ? "bg-[#9ADE7B] text-white border-transparent shadow-sm" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95"}`}
+              className={`px-3.5 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border ${currentPage === page ? "bg-[#9ADE7B] text-slate-900 border-transparent shadow-sm font-extrabold" : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50 active:scale-95"}`}
             >
               {page}
             </button>
@@ -335,7 +462,7 @@ export function Con_gestion_admin() {
   );
 }
 
-// ── 5. COMPOSANT PRINCIPAL CONTENEUR ─────────────────────────────────────────
+// ── COMPOSANT PRINCIPAL CONTENEUR ─────────────────────────────────────────
 export default function Gest_Admin() {
   return (
     <div className="flex flex-col gap-8 py-12 pb-20 bg-white min-h-screen font-sans px-4 md:px-8 text-slate-900 overflow-x-hidden">

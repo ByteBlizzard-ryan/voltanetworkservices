@@ -1,0 +1,117 @@
+
+
+AJUSTEMENT COTE ADMINISTRATEUR:
+
+I. FAISABLE RAPIDEMENT
+
+
+
+
+II. A PRENDRE AVEC DES PINCETTES
+
+
+
+
+III. RESOLU
+
+8. la recherche d'une commande doit-etre fonctionnelle
+
+12. Trop d'espace entre le header et le texte pour la version mobile
+
+11. Dans la page administrateur la recherche d'administrateur doit etre fonctionnelle
+
+9. Les filtres des administrateurs dans la page administrateurs ne sont pas fonctionnel
+
+10. on ne peut pas avoir les details administrateurs dans la page "administrateur" 
+
+3. Le filtre par date d'ajout de client n'est pas fonctionnel
+
+5. Le filtre de produit par date de creation de produit ne fonctionne pas dans la page de produit
+
+13. Filtre actif inactif chez les administrateur non fonctionnel
+
+6. Quand je clique sur le detail d'un produit il faut que du coté de la sidebar on marque aussi produit
+
+7. Quand je clique sur le detail commande il faut que du coté de la sidebar on marque aussi commande
+
+4. Dans la page détail client il faut que la sidebar pointe toujours sur client
+
+2. Dans la page clients trouver un autre mot pour décrire les clients qui ne sont pas bloqués car "débloqués" n'est pas très optimal
+
+1. Supprimer "Nom et prénom" du header admin 
+
+
+
+
+
+
+
+
+AJUSTEMENT COTE CLIENT:
+
+
+I. FAISABLE RAPIDEMENT
+
+
+
+II. A PRENDRE AVEC DES PINCETTES
+
+
+
+III. RESOLU
+12. Amélioré le temps d'attente lorsque je clique sur "Creer un compte" pour recevoir le code otp
+
+17. Temps de chargement des produits dans la page des produits trop long
+
+19. Dans la page de contact , l'envoi des email n'est pas fonctionel 
+
+14. Dans la page d'acceuil la section "Une approche globale de la sécurité" doit refleter les services de la page "Service" 
+
+23.Le message de confirmation de commande doit etre mise à jour 
+
+21. Lorsque je passe une commande par WhatsApp WhatsApp ne s'ouvre pas 
+
+20. la barre de recherche dans la page de la boutique doit etre fonctionnelle
+
+26. Quand je suis dans details des produits le header doit bien montre que c'est une sous instance de boutique
+
+3. Verifier si je dois laisser fonctionnel la redirection vers la page de login 
+
+15. Il faut que les produits dans best sellers proviennet veritablement de la base de données
+
+13. Le bouton renvoyer le code dans la page "Verification email" ne fonctionne pas
+
+11. Lorsque l'on cree un nouvelle utilisateur sans meme avoir à faire les vérification OTP l'utilisateur est déjà crée
+
+2. Le compte se cree sans verification OTP 
+
+5. Il faut un lien vers la page de confidentialité dans le footer du site web 
+
+26. Dans apropos, acceuil, services, contact, profil trop d'espace entre le haut de la page et le premier texte 
+
+18. Dans la page detail des produits faire que lorsque l'on clique sur le bouton j'aime on a le meme effet de chargement que sur la page boutique
+
+9. Réinitialisation de mot de passe 
+
+8. Sur la page de connexion lorsque les identifiants sont incorrectes le message est: Identifiants incorrects. Je dois le modifier pour qu'il donne identifiant pour mot de passe incorrecte
+
+10. Dans la page de creation de compte pour les erreurs comme celle liees à une adresse utilisateur déjà utilisé ca doit etre en francais
+
+25. Supprimer  le deuxieme "Suivez-nous" dans le footer de mon coté client 
+ 
+16. Supprimer le double suivenez nous du footer 
+
+4. Lorsque je suis connecté en tant que administrateur et que je veux cliquer sur la sidebar sur "administrateur" ca me redirige vers la page d'acceuil (Résolu)
+
+7. Les filtres dans historiques des commandes utilisateurs 
+
+22. Commande vie au formulaire de commande 
+
+24. Mise à jour de mot de passe utilisateur client
+
+1. Lorsque l'adresse mail est deja utilisé la création de compte est impossible mais aucun message ne specifie que c'est la cause
+
+
+
+
+

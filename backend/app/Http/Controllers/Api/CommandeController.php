@@ -10,39 +10,45 @@ use App\Mail\OrderConfirmationMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CommandeController extends Controller
 {
-
-   // app/Http/Controllers/API/CommandeController.php
-
-        public function index(Request $request)
+    /**
+     * Obtenir la liste globale des commandes (Espace Admin)
+     */
+    public function index(Request $request)
     {
         try {
-            $user = $request->user();
-
-            $commandes = Commande::where('id_utilisateur_fk', $user->id_utilisateur)
-                ->with(['produits', 'details']) // On charge les produits et les lignes de détails
+            $commandes = Commande::with(['produits', 'details'])
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function ($commande) {
-                    // On ajoute dynamiquement le total de la commande pour le front React
+                    // Calcul du prix total à la volée pour le tableau React
                     $commande->total_commande = $commande->details->sum('prix_global_scelle');
+                    
+                    // Formatage propre de la date de création au format ISO8601 pour le filtre React
+                    $commande->created_at_formatted = $commande->created_at ? $commande->created_at->toIso8601String() : null;
+                    
                     return $commande;
                 });
 
-            return response()->json($commandes);
+            return response()->json($commandes, 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => $e->getMessage()
+                'error' => 'Erreur technique lors de la récupération des données.',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
 
+    /**
+     * Enregistrer une nouvelle commande
+     */
     public function store(Request $request)
     {
-        // 1. Validation
+        // 1. Validation des entrées (Nettoyage des tableaux vides d'arguments)
         $request->validate([
             'nom_destinataire' => 'required|string|max:100',
             'email_contact' => 'required_if:canal_commande,FORMULAIRE|email|nullable',
@@ -52,10 +58,10 @@ class CommandeController extends Controller
         ]);
 
         try {
-            return DB::transaction(function () use ($request) {
+            // Exécution sécurisée de la transaction de la base de données
+            $dataResponse = DB::transaction(function () use ($request) {
                 
-                // Déterminer l'ID utilisateur avant la création
-                // On utilise $request->user() qui est la méthode la plus fiable avec Sanctum
+                // Déterminer l'ID utilisateur via le Token Sanctum
                 $userId = null;
                 if ($request->user()) {
                     $userId = $request->user()->id_utilisateur;
@@ -63,10 +69,10 @@ class CommandeController extends Controller
                     $userId = auth('sanctum')->user()->id_utilisateur;
                 }
 
-                // 2. Création de la commande principale en une fois
+                // 2. Création de la commande parente
                 $commande = Commande::create([
                     'id_commande' => (string) Str::uuid(),
-                    'id_utilisateur_fk' => $userId, // L'ID est injecté directement ici
+                    'id_utilisateur_fk' => $userId,
                     'nom_destinataire' => $request->nom_destinataire,
                     'email_contact' => $request->email_contact,
                     'telephone_contact' => $request->telephone_contact,
@@ -76,9 +82,9 @@ class CommandeController extends Controller
                     'statut_commande' => 'EN COURS',
                 ]);
 
-                // 3. Enregistrement des détails
+                // 3. Enregistrement des lignes de détails du panier
                 foreach ($request->panier as $item) {
-                    // Nettoyage du prix (au cas où le front envoie "15 000 FCFA")
+                    // Nettoyage des chaînes de prix alphanumériques
                     $prixUnitaire = (int) preg_replace('/[^0-9]/', '', $item['prix_unitaire_produit']);
                     
                     DetailCommande::create([
@@ -90,36 +96,56 @@ class CommandeController extends Controller
                     ]);
                 }
 
-                // 4. Gestion des e-mails (Uniquement si canal FORMULAIRE)
+                // 4. Routage de notifications par e-mail si canal "FORMULAIRE"
                 if ($commande->canal_commande === 'FORMULAIRE') {
                     try {
-                        // Email Admin
+                        // Expédition mail Administrateur
                         Mail::to("gabybryannapani@gmail.com")->send(new NewOrderMail($commande));
 
-                        // Email Client
+                        // Expédition mail Client récapitulatif
                         if (!empty($commande->email_contact)) {
-                            // On peut utiliser queue() au lieu de send() si tu as configuré les files d'attente
                             Mail::to($commande->email_contact)->send(new OrderConfirmationMail($commande));
                         }
                     } catch (\Exception $mailEx) {
-                        // Optionnel : Loguer l'erreur mail sans faire échouer la transaction
-                        \Log::error("Erreur envoi mail commande : " . $mailEx->getMessage());
+                        // Utilisation sécurisée de la façade Log précédemment importée
+                        Log::error("Erreur envoi mail commande : " . $mailEx->getMessage());
                     }
                 }
 
-                return response()->json([
+                return [
                     'success' => true,
                     'message' => 'Commande traitée avec succès',
                     'id_commande' => $commande->id_commande
-                ], 201);
+                ];
             });
+
+            // Renvoi de la réponse HTTP standardisée avec le code 201
+            return response()->json($dataResponse, 201);
 
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Erreur technique lors de la commande',
-                'debug' => $e->getMessage() // À retirer en production
+                'message' => 'Erreur technique lors du traitement en base de données.',
+                'debug' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Afficher une commande spécifique
+     */
+    public function show($id)
+    {
+        try {
+            $commande = Commande::with(['produits', 'details'])->find($id);
+            
+            if (!$commande) {
+                return response()->json(['error' => 'Commande non trouvée'], 404);
+            }
+
+            return response()->json($commande, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

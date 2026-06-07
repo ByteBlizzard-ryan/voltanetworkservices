@@ -7,13 +7,29 @@ use App\Models\Produit;
 use App\Models\DetailCommande;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse; 
-use Illuminate\Support\Facades\DB; // 👈 OBLIGATOIRE pour pouvoir utiliser DB::raw() !
+use Illuminate\Support\Facades\DB;
 
 class ProduitController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Produit::with('sousCategorie')->get());
+        // On initialise la requête d'interrogation sur le modèle Produit
+        $query = Produit::with('sousCategorie');
+
+        // Filtre : Date de création supérieure ou égale à...
+        if ($request->filled('date_debut')) {
+            $query->whereDate('created_at', '>=', $request->date_debut);
+        }
+
+        // Filtre : Date de création inférieure ou égale à...
+        if ($request->filled('date_fin')) {
+            $query->whereDate('created_at', '<=', $request->date_fin);
+        }
+
+        // On ordonne par date récente et on récupère les données
+        $produits = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json($produits);
     }
 
     public function show($id)
@@ -30,7 +46,6 @@ class ProduitController extends Controller
         return response()->json($produit);
     }
 
-    // Ajout du type de retour et recherche par la colonne explicite 'id_produit'
     public function toggleDisponibilite($id): JsonResponse
     {
         // On cherche le produit via 'id_produit' au cas où l'UUID ne se lie pas sur 'id'
@@ -92,7 +107,6 @@ class ProduitController extends Controller
             return response()->json($produits);
 
         } catch (\Exception $e) {
-            // En cas de crash, on renvoie l'erreur exacte pour savoir d'où vient le problème
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors du calcul des best-sellers',

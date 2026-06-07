@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api; // <-- Le bon namespace correspondant à ton dossier
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller; // <-- ICI : On importe le Controller de base de Laravel
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Models\Permission; //
+use App\Models\Permission;
 
 class AdminController extends Controller
 {
@@ -26,6 +26,9 @@ class AdminController extends Controller
                         'email' => $admin->email,
                         'role' => $admin->role_utilisateur,
                         'etat' => $admin->compte_est_actif ? 'actif' : 'inactif',
+                        // AJOUT : indispensable pour faire fonctionner le filtre par date côté React
+                        'created_at' => $admin->created_at ? $admin->created_at->toIso8601String() : null,
+                        
                         // Si aucune ligne de permission n'existe, on renvoie des valeurs par défaut
                         'dashboard' => $admin->permission ? (bool)$admin->permission->tableau_de_bord : false,
                         'clients' => $admin->permission ? (bool)$admin->permission->clients : false,
@@ -59,7 +62,7 @@ class AdminController extends Controller
             $admin = User::create([
                 'nom_complet' => $validated['nom_complet'],
                 'email' => $validated['email'],
-                'password' => $validated['password'], 
+                'password' => $validated['password'], // Rappel : Pensez à hasher via bcrypt() ou Casts Laravel si ce n'est pas automatique
                 'role_utilisateur' => $validated['role_utilisateur'],
                 'compte_est_actif' => true, 
             ]);
@@ -101,6 +104,7 @@ class AdminController extends Controller
         }
     }
 
+    // ── METTRE À JOUR LES PERMISSIONS
     public function updatePermissions(Request $request, $id)
     {
         $validated = $request->validate([

@@ -1,7 +1,7 @@
 // layouts/UseSidebar.jsx
 import React from "react";
 import { Outlet } from "react-router-dom";
-import AdminSidebar from "./header";
+import AdminSidebar from "./sidebarAdmin";
 import { useSidebar } from "./Context_sider";
 
 export default function UseSidebar() {

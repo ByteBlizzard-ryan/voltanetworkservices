@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse; // <-- AJOUTÉ ICI
+use Illuminate\Http\JsonResponse;
 
 class ClientController extends Controller
 {
@@ -13,14 +13,18 @@ class ClientController extends Controller
     {
         $query = User::where('role_utilisateur', 'CLIENT');
 
+        // Filtrage par statut
         if ($request->has('statut') && $request->statut !== 'tous') {
             $isActive = $request->statut === 'débloqué' ? true : false;
             $query->where('compte_est_actif', $isActive);
         }
 
+        // Filtrage par date de début
         if ($request->filled('date_debut')) {
             $query->whereDate('created_at', '>=', $request->date_debut);
         }
+        
+        // Filtrage par date de fin
         if ($request->filled('date_fin')) {
             $query->whereDate('created_at', '<=', $request->date_fin);
         }
@@ -29,11 +33,11 @@ class ClientController extends Controller
 
         $formattedClients = $clients->map(function ($client) {
             return [
-                'id' => $client->id_utilisateur,
+                'id' => $client->id_utilisateur, // Utilisation de la bonne clé
                 'nom' => $client->nom_complet,
                 'email' => $client->email,
                 'statut' => $client->compte_est_actif ? 'débloqué' : 'bloqué',
-                'created_at' => $client->created_at->toDateString()
+                'created_at' => $client->created_at ? $client->created_at->toDateString() : null
             ];
         });
 
@@ -42,7 +46,10 @@ class ClientController extends Controller
 
     public function toggleStatut($id)
     {
-        $client = User::where('role_utilisateur', 'CLIENT')->find($id);
+        // FIX : Recherche sur la bonne colonne de clé primaire 'id_utilisateur'
+        $client = User::where('role_utilisateur', 'CLIENT')
+            ->where('id_utilisateur', $id)
+            ->first();
 
         if (!$client) {
             return response()->json(['message' => 'Client introuvable.'], 404);
@@ -54,17 +61,20 @@ class ClientController extends Controller
         return response()->json([
             'success' => true,
             'message' => $client->compte_est_actif ? 'Client débloqué avec succès.' : 'Client bloqué avec succès.',
-            'statut' => $client->compte_est_actif ? 'ACTIF' : 'BLOQUÉ' // Aligné avec le state React
+            'statut' => $client->compte_est_actif ? 'débloqué' : 'bloqué' // Aligné avec les valeurs attendues par React
         ], 200);
     }
 
     public function show($id): JsonResponse
     {
         try {
-            // On charge aussi 'commandes.details' pour pouvoir calculer le montant sans refaire de requêtes
-            $user = User::with(['commandes' => function($query) {
-                $query->with('details')->orderBy('created_at', 'desc');
-            }])->findOrFail($id);
+            // FIX : Si findOrFail n'utilise pas la bonne clé primaire par défaut dans le modèle User,
+            // il vaut mieux expliciter la recherche ici aussi.
+            $user = User::where('id_utilisateur', $id)
+                ->with(['commandes' => function($query) {
+                    $query->with('details')->orderBy('created_at', 'desc');
+                }])
+                ->firstOrFail();
 
             $partiesNom = explode(' ', $user->nom_complet, 2);
             $prenom = $partiesNom[0] ?? '';
@@ -85,7 +95,6 @@ class ClientController extends Controller
                     'id' => $commande->id_commande,
                     'created_at' => $commande->created_at->toIso8601String(),
                     'statut' => $commande->statut_commande, 
-                    // Utilisation de la collection déjà chargée en mémoire
                     'montant' => $commande->details->sum('prix_global_scelle')
                 ];
             });

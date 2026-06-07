@@ -18,7 +18,7 @@ function Couleur_Nom_Icon(lettre = "") {
 
 export default function AdminDetail() {
   const navigate = useNavigate();
-  const { id_admin } = useParams();
+  const { id_admin } = useParams(); // Récupère l'UUID depuis l'URL de React-Router
 
   // États dynamiques
   const [admin, setAdmin] = useState(null);
@@ -35,7 +35,12 @@ export default function AdminDetail() {
         if (!response.ok) throw new Error("Impossible de récupérer les administrateurs.");
         
         const data = await response.json();
-        const currentAdmin = data.find(item => item.id_utilisateur === id_admin);
+        
+        // Extraction sécurisée du tableau
+        const listeAdmins = Array.isArray(data) ? data : (data.data || []);
+        
+        // 🛠️ FIX : Le contrôleur mappe 'id_utilisateur' vers 'id'
+        const currentAdmin = listeAdmins.find(item => item.id === id_admin);
 
         if (!currentAdmin) {
           throw new Error("Cet administrateur n'existe pas ou a été supprimé.");
@@ -60,7 +65,9 @@ export default function AdminDetail() {
 
     try {
       setActionLoading(true);
-      const response = await fetch(`http://localhost:8000/api/admin/administrateurs/${admin.id_utilisateur}/toggle-status`, {
+      
+      // 🛠️ FIX : On utilise admin.id issu du mappage de ton contrôleur
+      const response = await fetch(`http://localhost:8000/api/admin/administrateurs/${admin.id}/toggle-status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -72,9 +79,10 @@ export default function AdminDetail() {
 
       const result = await response.json();
       
+      // 🛠️ FIX : Ton contrôleur renvoie 'compte_est_actif', on met à jour le champ 'etat' local
       setAdmin(prev => ({
         ...prev,
-        compte_est_actif: result.compte_est_actif
+        etat: result.compte_est_actif ? "actif" : "inactif"
       }));
 
     } catch (err) {
@@ -111,8 +119,10 @@ export default function AdminDetail() {
     );
   }
 
-  // Configuration graphique dynamique selon le statut venant de Laravel
-  const isBlocked = !admin.compte_est_actif;
+  // 🛠️ FIX : Le contrôleur renvoie maintenant la chaîne 'actif' ou 'inactif' dans le champ 'etat'
+  const isActive = admin.etat === "actif";
+  const isBlocked = !isActive;
+
   const statusBadgeClass = isBlocked 
     ? "bg-red-50 text-red-600 border-transparent" 
     : "bg-[#9ADE7B]/20 text-slate-900 border-transparent";
@@ -161,10 +171,10 @@ export default function AdminDetail() {
           <div className="flex items-center gap-5 mb-6 pb-6 border-b border-slate-100">
             <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-slate-100">
               <div 
-                style={{ backgroundColor: Couleur_Nom_Icon(admin.nom_complet?.charAt(0).toUpperCase()) }}
+                style={{ backgroundColor: Couleur_Nom_Icon(admin.nom?.charAt(0).toUpperCase()) }}
                 className="w-full h-full rounded-2xl flex items-center justify-center font-extrabold text-white text-xl"
               >
-                {admin.nom_complet?.charAt(0).toUpperCase() || <User size={24} />}
+                {admin.nom?.charAt(0).toUpperCase() || <User size={24} />}
               </div>
               {!isBlocked && (
                 <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#9ADE7B] rounded-full flex items-center justify-center border-2 border-white shadow-sm">
@@ -173,8 +183,8 @@ export default function AdminDetail() {
               )}
             </div>
             <div>
-              <h2 className="text-xl font-extrabold text-slate-900 m-0 tracking-tight leading-tight">{admin.nom_complet}</h2>
-              <p className="text-[10px] font-mono font-bold tracking-wider text-slate-400 mt-1">UUID: {admin.id_utilisateur}</p>
+              <h2 className="text-xl font-extrabold text-slate-900 m-0 tracking-tight leading-tight">{admin.nom}</h2>
+              <p className="text-[10px] font-mono font-bold tracking-wider text-slate-400 mt-1">UUID: {admin.id}</p>
             </div>
           </div>
 
@@ -187,7 +197,7 @@ export default function AdminDetail() {
             
             <div className="flex flex-col gap-1.5">
               <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400">Rôle</span>
-              <span className="text-xs font-bold text-slate-700 font-mono uppercase tracking-[0.2em] bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg self-start">{admin.role_utilisateur}</span>
+              <span className="text-xs font-bold text-slate-700 font-mono uppercase tracking-[0.2em] bg-slate-50 border border-slate-100 px-2.5 py-1 rounded-lg self-start">{admin.role}</span>
             </div>
 
             <div className="flex flex-col gap-2 items-start">
